@@ -7,25 +7,32 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --bg-main: #0e0e10;
-            --bg-card: #16161a;
-            --bg-card-hover: #1e1e24;
-            --border-color: #26262c;
+            --bg-main: #0c0c0e;
+            --bg-card: #151518;
+            --bg-card-elevated: #1c1c20;
+            --bg-card-hover: #222227;
+            --border-color: #232328;
+            --border-light: #2e2e35;
             --text-main: #ffffff;
-            --text-muted: #8e8e93;
+            --text-muted: #86868d;
             --accent-orange: #ff6b2c;
+            --accent-orange-glow: rgba(255, 107, 44, 0.25);
             --accent-yellow: #eab308;
             --accent-teal: #2dd4bf;
             --accent-red: #ef4444;
             --accent-green: #22c55e;
             --accent-blue: #3b82f6;
+            --ease-fluid: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         body.light-theme {
             --bg-main: #f4f4f6;
             --bg-card: #ffffff;
+            --bg-card-elevated: #f8f8fa;
             --bg-card-hover: #f0f0f4;
             --border-color: #e4e4e7;
+            --border-light: #d4d4d8;
             --text-main: #111827;
             --text-muted: #6b7280;
         }
@@ -34,87 +41,36 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-main);
             color: var(--text-main);
-            padding-bottom: 84px;
+            padding-bottom: 88px;
             overflow-x: hidden;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            position: sticky;
-            top: 0;
-            background: rgba(14, 14, 16, 0.92);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-        }
-
-        body.light-theme .header {
-            background: rgba(244, 244, 246, 0.92);
-        }
-
-        .logo-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 17px;
-        }
-
-        .logo-icon {
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #ff7e47, #ff511a);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #fff;
-        }
-
-        .lang-switch {
-            display: flex;
-            background: var(--bg-card);
-            border-radius: 10px;
-            padding: 2px;
-            border: 1px solid var(--border-color);
-        }
-
-        .lang-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            padding: 5px 10px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .lang-btn.active {
-            background: #27272e;
-            color: #ffffff;
+            transition: background-color 0.3s var(--ease-fluid), color 0.3s var(--ease-fluid);
         }
 
         .container {
-            padding: 0 16px;
+            padding: 6px 14px 0;
         }
 
         .tab-section {
             display: none;
+            opacity: 0;
+            transform: translateY(6px) scale(0.992);
         }
 
         .tab-section.active {
             display: block;
+            animation: smoothTabEnter 0.36s var(--ease-fluid) forwards;
+        }
+
+        @keyframes smoothTabEnter {
+            from { opacity: 0; transform: translateY(6px) scale(0.992); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .page-title-row {
@@ -127,9 +83,10 @@
         .page-title {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 24px;
+            gap: 11px;
+            font-size: 25px;
             font-weight: 800;
+            letter-spacing: -0.4px;
         }
 
         .title-icon-badge {
@@ -140,8 +97,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 17px;
-            color: #fff;
+            color: #111113;
+            box-shadow: 0 4px 12px var(--accent-orange-glow);
+        }
+
+        .title-icon-badge svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.3;
         }
 
         .date-badge {
@@ -154,14 +117,16 @@
             border-radius: 20px;
             font-size: 13px;
             font-weight: 600;
+            font-variant-numeric: tabular-nums;
         }
 
         .dot-green {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background: var(--accent-green);
             border-radius: 50%;
             display: inline-block;
+            box-shadow: 0 0 6px var(--accent-green);
         }
 
         .stats-grid {
@@ -173,33 +138,32 @@
 
         .stat-card {
             background: var(--bg-card);
-            border: 1.5px solid var(--border-color);
-            border-radius: 14px;
-            padding: 12px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 11px 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             min-height: 98px;
-            transition: all 0.18s ease;
+            cursor: pointer;
+            transition: transform 0.25s var(--ease-fluid), border-color 0.25s ease, background 0.25s ease;
         }
 
-        .stat-card.filter-card {
-            cursor: pointer;
-        }
+        .stat-card:active { transform: scale(0.96); }
 
         .stat-card.filter-card.yellow.selected {
-            border-color: var(--accent-yellow);
-            background: linear-gradient(180deg, rgba(234, 179, 8, 0.10) 0%, var(--bg-card) 100%);
+            border-color: rgba(234, 179, 8, 0.55);
+            background: linear-gradient(180deg, rgba(234, 179, 8, 0.08) 0%, var(--bg-card) 100%);
         }
 
         .stat-card.filter-card.teal.selected {
-            border-color: var(--accent-teal);
-            background: linear-gradient(180deg, rgba(45, 212, 191, 0.10) 0%, var(--bg-card) 100%);
+            border-color: rgba(45, 212, 191, 0.55);
+            background: linear-gradient(180deg, rgba(45, 212, 191, 0.08) 0%, var(--bg-card) 100%);
         }
 
         .stat-card.filter-card.red.selected {
-            border-color: var(--accent-red);
-            background: linear-gradient(180deg, rgba(239, 68, 68, 0.10) 0%, var(--bg-card) 100%);
+            border-color: rgba(239, 68, 68, 0.55);
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--bg-card) 100%);
         }
 
         .stat-label {
@@ -221,6 +185,7 @@
             width: 6px;
             height: 6px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .stat-value {
@@ -228,24 +193,29 @@
             font-weight: 800;
             margin: 6px 0 4px;
             letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
         }
 
         .stat-subtext {
             font-size: 11px;
             color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .mini-bars {
             display: flex;
             align-items: flex-end;
-            gap: 3px;
-            height: 16px;
+            gap: 2.5px;
+            height: 18px;
         }
 
         .bar {
             flex: 1;
             border-radius: 2px;
-            opacity: 0.85;
+            opacity: 0.9;
+            transition: height 0.45s var(--ease-fluid);
         }
 
         .live-bar {
@@ -262,7 +232,8 @@
             gap: 6px;
             color: var(--accent-red);
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
+            font-size: 11px;
         }
 
         .pulse-dot {
@@ -270,17 +241,17 @@
             height: 7px;
             background: var(--accent-red);
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
+            animation: pulse 2s infinite ease-in-out;
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.5; }
-            100% { transform: scale(0.95); opacity: 1; }
+            0%, 100% { transform: scale(0.95); opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            50% { transform: scale(1.25); opacity: 0.7; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
         }
 
         .update-text {
             color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
         }
 
         .search-box {
@@ -292,16 +263,20 @@
             width: 100%;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px 14px 12px 38px;
+            border-radius: 13px;
+            padding: 11px 14px 11px 38px;
             color: var(--text-main);
             font-size: 14px;
             outline: none;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
         }
 
-        .search-input::placeholder {
-            color: #636369;
+        .search-input:focus {
+            border-color: var(--border-light);
+            background: var(--bg-card-elevated);
         }
+
+        .search-input::placeholder { color: #5e5e66; }
 
         .search-icon {
             position: absolute;
@@ -309,66 +284,321 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 15px;
+            display: flex;
+            align-items: center;
         }
 
         .chips-row {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 6px;
-            margin-bottom: 14px;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
             scrollbar-width: none;
         }
-
-        .chips-row::-webkit-scrollbar {
-            display: none;
-        }
+        .chips-row::-webkit-scrollbar { display: none; }
 
         .chip-btn {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             color: var(--text-muted);
             padding: 8px 14px;
-            border-radius: 12px;
+            border-radius: 11px;
             font-size: 13px;
             font-weight: 600;
             white-space: nowrap;
             cursor: pointer;
+            transition: all 0.25s var(--ease-fluid);
         }
+        .chip-btn:active { transform: scale(0.95); }
+        .chip-btn.active { background: #ffffff; color: #0c0c0e; border-color: #ffffff; }
 
-        .chip-btn.active {
-            background: #ffffff;
-            color: #0e0e10;
-            border-color: #ffffff;
-        }
-
-        .feed-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .feed-group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
         }
 
         .feed-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            padding: 10px 12px;
+            padding: 11px 13px;
             display: flex;
             align-items: center;
             gap: 12px;
             cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
         }
-
-        .feed-item:active {
-            background: var(--bg-card-hover);
-        }
+        .feed-item:last-child { border-bottom: none; }
+        .feed-item:active { background: var(--bg-card-hover); }
 
         .item-avatar {
             width: 44px;
             height: 44px;
-            background: #202026;
-            border-radius: 12px;
+            background: #1f1f24;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            margin: 8px 0 16px;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+        }
+
+        .title-icon-badge {
+            width: 34px;
+            height: 34px;
+            background: var(--accent-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111113;
+            box-shadow: 0 4px 12px var(--accent-orange-glow);
+        }
+
+        .title-icon-badge svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.3;
+        }
+
+        .date-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .dot-green {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 6px var(--accent-green);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 11px 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 98px;
+            cursor: pointer;
+            transition: transform 0.25s var(--ease-fluid), border-color 0.25s ease, background 0.25s ease;
+        }
+
+        .stat-card:active { transform: scale(0.96); }
+
+        .stat-card.filter-card.yellow.selected {
+            border-color: rgba(234, 179, 8, 0.55);
+            background: linear-gradient(180deg, rgba(234, 179, 8, 0.08) 0%, var(--bg-card) 100%);
+        }
+
+        .stat-card.filter-card.teal.selected {
+            border-color: rgba(45, 212, 191, 0.55);
+            background: linear-gradient(180deg, rgba(45, 212, 191, 0.08) 0%, var(--bg-card) 100%);
+        }
+
+        .stat-card.filter-card.red.selected {
+            border-color: rgba(239, 68, 68, 0.55);
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, var(--bg-card) 100%);
+        }
+
+        .stat-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .stat-label-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .stat-value {
+            font-size: 21px;
+            font-weight: 800;
+            margin: 6px 0 4px;
+            letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-subtext {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mini-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2.5px;
+            height: 18px;
+        }
+
+        .bar {
+            flex: 1;
+            border-radius: 2px;
+            opacity: 0.9;
+            transition: height 0.45s var(--ease-fluid);
+        }
+
+        .live-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-red);
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            font-size: 11px;
+        }
+
+        .pulse-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.95); opacity: 1; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+            50% { transform: scale(1.25); opacity: 0.7; box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+        }
+
+        .update-text {
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 13px;
+            padding: 11px 14px 11px 38px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--border-light);
+            background: var(--bg-card-elevated);
+        }
+
+        .search-input::placeholder { color: #5e5e66; }
+
+        .search-icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+        }
+
+        .chips-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .chips-row::-webkit-scrollbar { display: none; }
+
+        .chip-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.25s var(--ease-fluid);
+        }
+        .chip-btn:active { transform: scale(0.95); }
+        .chip-btn.active { background: #ffffff; color: #0c0c0e; border-color: #ffffff; }
+
+        .feed-group-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .feed-item {
+            padding: 11px 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+        .feed-item:last-child { border-bottom: none; }
+        .feed-item:active { background: var(--bg-card-hover); }
+
+        .item-avatar {
+            width: 44px;
+            height: 44px;
+            background: #1f1f24;
+            border-radius: 11px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -376,31 +606,18 @@
             flex-shrink: 0;
             overflow: hidden;
         }
+        .item-avatar img { width: 88%; height: 88%; object-fit: contain; }
 
-        .item-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .item-info {
-            flex: 1;
-            min-width: 0;
-        }
-
+        .item-info { flex: 1; min-width: 0; }
         .item-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
-        .item-title span {
-            color: var(--text-muted);
-            font-weight: 500;
-        }
+        .item-title span { color: var(--text-muted); font-weight: 500; }
 
         .item-sub {
             display: flex;
@@ -413,56 +630,29 @@
             text-overflow: ellipsis;
         }
 
-        .tag-badge {
-            padding: 2px 6px;
-            border-radius: 6px;
+        .tag-inline {
             font-size: 10px;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
             flex-shrink: 0;
         }
+        .tag-inline.upgrade { color: var(--accent-yellow); }
+        .tag-inline.craft { color: var(--accent-teal); }
+        .tag-inline.burn { color: var(--accent-red); }
+        .tag-inline.portals { color: #38bdf8; }
+        .tag-inline.mrkt { color: var(--accent-green); }
 
-        .tag-upgrade {
-            background: rgba(234, 179, 8, 0.15);
-            color: var(--accent-yellow);
-        }
-
-        .tag-craft {
-            background: rgba(45, 212, 191, 0.15);
-            color: var(--accent-teal);
-        }
-
-        .tag-burn {
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--accent-red);
-        }
-
-        .tag-arb {
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--accent-green);
-        }
-
-        .item-right {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .item-price {
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 3px;
-        }
-
+        .item-right { text-align: right; flex-shrink: 0; }
+        .item-price { font-size: 13px; font-weight: 700; margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+        .item-price.teal { color: var(--accent-teal); }
         .item-price.green { color: var(--accent-green); }
         .item-price.red { color: var(--accent-red); }
-        .item-time { font-size: 11px; color: var(--text-muted); }
-
-        .profit-green {
-            color: var(--accent-green);
-            font-size: 14px;
-            font-weight: 800;
-            margin-bottom: 2px;
-        }
+        .item-time { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        .profit-green { color: var(--accent-green); font-size: 14px; font-weight: 800; margin-bottom: 2px; font-variant-numeric: tabular-nums; }
 
         .empty-box {
             background: var(--bg-card);
@@ -472,27 +662,19 @@
             text-align: center;
             color: var(--text-muted);
         }
+        .empty-symbol { font-size: 26px; margin-bottom: 10px; opacity: 0.65; }
+        .empty-text { font-size: 13px; line-height: 1.45; }
 
-        .empty-symbol {
-            font-size: 28px;
-            margin-bottom: 10px;
-            opacity: 0.7;
-        }
-
-        .empty-text {
-            font-size: 13px;
-            line-height: 1.4;
-        }
-
-        /* Карта рынка */
         .map-actions { display: flex; gap: 8px; }
         .icon-action-btn {
-            width: 36px; height: 36px; border-radius: 10px;
+            width: 36px; height: 36px; border-radius: 11px;
             border: 1px solid var(--border-color); background: var(--bg-card);
             color: var(--text-main); display: flex; align-items: center; justify-content: center;
-            font-size: 16px; cursor: pointer;
+            cursor: pointer;
+            transition: transform 0.2s var(--ease-fluid), background-color 0.2s ease;
         }
-        .icon-action-btn.orange { background: var(--accent-orange); border-color: var(--accent-orange); color: #fff; }
+        .icon-action-btn:active { transform: scale(0.93); }
+        .icon-action-btn.orange { background: var(--accent-orange); border-color: var(--accent-orange); color: #111113; }
 
         .segmented-bar {
             display: grid; grid-template-columns: repeat(3, 1fr);
@@ -502,8 +684,9 @@
         .seg-btn {
             background: none; border: none; color: var(--text-muted);
             padding: 8px 4px; font-size: 13px; font-weight: 600; border-radius: 9px; cursor: pointer;
+            transition: all 0.28s var(--ease-fluid);
         }
-        .seg-btn.active { background: #27272e; color: #fff; }
+        .seg-btn.active { background: #26262d; color: #fff; }
 
         .timeframes-bar {
             display: grid; grid-template-columns: repeat(5, 1fr);
@@ -513,8 +696,9 @@
         .tf-btn {
             background: none; border: none; color: var(--text-muted);
             padding: 7px 0; font-size: 13px; font-weight: 600; border-radius: 9px; cursor: pointer;
+            transition: all 0.28s var(--ease-fluid);
         }
-        .tf-btn.active { background: #ffffff; color: #0e0e10; font-weight: 700; }
+        .tf-btn.active { background: #ffffff; color: #0c0c0e; font-weight: 700; }
 
         .map-subfilters {
             display: flex; justify-content: space-between; align-items: center;
@@ -526,67 +710,107 @@
         }
         .pill-btn {
             background: none; border: none; color: var(--text-muted);
-            padding: 6px 10px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer;
+            padding: 6px 9px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer;
             display: flex; align-items: center; gap: 4px;
+            transition: all 0.25s var(--ease-fluid);
         }
-        .pill-btn.active { background: #27272e; color: #fff; }
-        .pill-btn.growth.active { background: rgba(34, 197, 94, 0.22); color: #4ade80; }
-        .pill-btn.drop.active { background: rgba(239, 68, 68, 0.22); color: #f87171; }
+        .pill-btn.active { background: #26262d; color: #fff; }
+        .pill-btn.growth.active { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .pill-btn.drop.active { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
         .treemap-wrapper {
-            position: relative; width: 100%; height: 520px;
+            position: relative; width: 100%; height: 480px;
             background: #141418; border-radius: 16px; overflow: hidden;
             border: 1px solid var(--border-color);
         }
         .tm-node {
             position: absolute; box-sizing: border-box;
-            border: 1.5px solid #0e0e10; border-radius: 6px;
+            border: 1.5px solid #0c0c0e; border-radius: 6px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; padding: 4px; overflow: hidden; cursor: pointer;
+            will-change: left, top, width, height, opacity;
+            transition: left 0.45s var(--ease-fluid), top 0.45s var(--ease-fluid), width 0.45s var(--ease-fluid), height 0.45s var(--ease-fluid), opacity 0.35s ease, transform 0.2s ease, background 0.35s ease;
         }
-        .tm-green-hi { background: linear-gradient(145deg, #229642, #1b7e37); }
-        .tm-green-md { background: linear-gradient(145deg, #27803f, #1e6932); }
-        .tm-red-hi { background: linear-gradient(145deg, #d9383a, #b8282a); }
-        .tm-red-md { background: linear-gradient(145deg, #8b3235, #732629); }
+        .tm-node:active { transform: scale(0.97); z-index: 10; }
+        .tm-neutral { background: linear-gradient(145deg, #4b4f56, #3d4046); }
+        .tm-green-hi { background: linear-gradient(145deg, #219441, #197834); }
+        .tm-green-md { background: linear-gradient(145deg, #257a3c, #1d6330); }
+        .tm-red-hi { background: linear-gradient(145deg, #d13638, #b02628); }
+        .tm-red-md { background: linear-gradient(145deg, #873134, #6e2427); }
 
-        .tm-img { object-fit: contain; pointer-events: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); }
+        .tm-img { object-fit: contain; pointer-events: none; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); transition: width 0.4s var(--ease-fluid), height 0.4s var(--ease-fluid); }
         .tm-title { font-weight: 800; color: #ffffff; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 96%; }
-        .tm-sub { color: rgba(255, 255, 255, 0.88); font-weight: 600; line-height: 1.15; }
-        .tm-pct { color: #ffffff; font-weight: 700; line-height: 1.15; }
+        .tm-sub { color: rgba(255, 255, 255, 0.9); font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+        .tm-pct { color: #ffffff; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
 
-        /* Моя лента */
-        .ticker-strip {
-            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: none;
+        .map-toast {
+            position: absolute;
+            left: 50%;
+            bottom: 24px;
+            transform: translate(-50%, 16px);
+            background: rgba(24, 24, 29, 0.95);
+            border: 1px solid #32323a;
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.35;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.65);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s var(--ease-fluid), transform 0.35s var(--ease-fluid);
+            width: max-content;
+            max-width: 85%;
         }
-        .ticker-strip::-webkit-scrollbar { display: none; }
-        .ticker-item {
-            background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 10px; padding: 7px 11px; font-size: 12px; font-weight: 700;
-            white-space: nowrap; display: flex; align-items: center; gap: 6px;
+        .map-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+        .ticker-marquee {
+            overflow: hidden;
+            white-space: nowrap;
+            margin-bottom: 12px;
+            padding: 6px 0;
+            mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
         }
-        .ticker-item span { color: var(--text-muted); font-weight: 500; }
+        .ticker-track {
+            display: inline-flex;
+            gap: 20px;
+            animation: marqueeScroll 24s linear infinite;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        @keyframes marqueeScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .ticker-label-orange { color: var(--accent-orange); font-weight: 800; letter-spacing: 0.4px; font-size: 11px; }
 
         .markets-stat-card {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 14px; padding: 12px 14px; margin-bottom: 12px;
-            display: flex; flex-direction: column; gap: 10px;
+            border-radius: 15px; padding: 13px 14px; margin-bottom: 12px;
+            display: flex; flex-direction: column; gap: 11px;
         }
         .market-bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-        .market-name { width: 52px; font-weight: 700; }
+        .market-name { width: 54px; font-weight: 700; }
         .progress-track { flex: 1; height: 6px; background: #232329; border-radius: 4px; overflow: hidden; }
-        .progress-fill-blue { height: 100%; background: var(--accent-blue); border-radius: 4px; }
-        .market-sales-count { width: 72px; text-align: right; color: var(--text-muted); font-size: 12px; }
+        .progress-fill-blue { height: 100%; background: var(--accent-blue); border-radius: 4px; transition: width 0.5s var(--ease-fluid); }
+        .market-sales-count { width: 92px; text-align: right; color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 
-        .search-filter-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .search-filter-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .search-filter-row .search-box { flex: 1; margin-bottom: 0; }
         .filter-open-btn {
             width: 44px; height: 44px; background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 12px; color: var(--text-main); font-size: 17px;
+            border-radius: 13px; color: var(--text-main);
             display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;
+            transition: all 0.2s var(--ease-fluid);
         }
+        .filter-open-btn:active { transform: scale(0.94); }
         .filter-open-btn.has-filters { border-color: var(--accent-orange); color: var(--accent-orange); }
 
-        .active-feed-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .active-feed-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
         .feed-tag-chip {
             background: rgba(255, 107, 44, 0.14); border: 1px solid rgba(255, 107, 44, 0.45);
             color: #ff9c70; padding: 6px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;
@@ -595,43 +819,61 @@
 
         .feed-empty-card {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 16px; padding: 24px 16px; text-align: center;
+            border-radius: 16px; padding: 28px 16px; text-align: center;
         }
-        .feed-empty-text { font-size: 13px; color: var(--text-muted); line-height: 1.45; margin-bottom: 18px; }
+        .feed-empty-text { font-size: 13px; color: var(--text-muted); line-height: 1.45; margin-bottom: 18px; max-width: 290px; margin-left: auto; margin-right: auto; }
         .quick-presets-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
         .feed-preset-btn {
-            background: #202026; border: 1px solid var(--border-color); color: var(--text-main);
+            background: #1d1d22; border: 1px solid var(--border-color); color: var(--text-main);
             padding: 9px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s var(--ease-fluid), background-color 0.2s ease;
         }
+        .feed-preset-btn:active { transform: scale(0.95); background: #26262d; }
 
-        /* Настройки */
         .pro-banner-card {
-            background: linear-gradient(135deg, #271a14 0%, #181619 100%);
-            border: 1px solid rgba(255, 107, 44, 0.45);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #251914 0%, #161518 100%);
+            border: 1px solid rgba(255, 107, 44, 0.35);
             border-radius: 16px; padding: 14px; margin-bottom: 10px;
             display: flex; align-items: center; gap: 12px; cursor: pointer;
+            transition: transform 0.22s var(--ease-fluid);
         }
+        .pro-banner-card::after {
+            content: "";
+            position: absolute;
+            right: -18px;
+            top: -18px;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            border: 14px solid rgba(255, 107, 44, 0.14);
+            pointer-events: none;
+        }
+        .pro-banner-card:active { transform: scale(0.98); }
         .pro-logo-sq {
             width: 44px; height: 44px; border-radius: 12px;
-            background: linear-gradient(135deg, #ff7e47, #ff511a);
-            display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+            background: var(--accent-orange);
+            display: flex; align-items: center; justify-content: center; color: #111113; flex-shrink: 0;
         }
         .pro-banner-info { flex: 1; min-width: 0; }
         .pro-title { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 2px; }
-        .pro-status { font-size: 12px; color: var(--accent-green); font-weight: 600; margin-bottom: 6px; }
-        .pro-progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.12); border-radius: 3px; overflow: hidden; }
-        .pro-progress-fill { width: 85%; height: 100%; background: var(--accent-green); border-radius: 3px; }
+        .pro-status { font-size: 12px; color: var(--accent-green); font-weight: 600; margin-bottom: 7px; }
+        .pro-progress-bg { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+        .pro-progress-fill { width: 12%; height: 100%; background: var(--accent-green); border-radius: 3px; transition: width 0.5s var(--ease-fluid); }
 
         .ref-banner-card {
-            background: linear-gradient(135deg, #13251b 0%, #16181a 100%);
-            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: linear-gradient(135deg, #13231b 0%, #151719 100%);
+            border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 16px; padding: 14px; margin-bottom: 18px;
             display: flex; align-items: center; gap: 12px; cursor: pointer;
+            transition: transform 0.22s var(--ease-fluid);
         }
+        .ref-banner-card:active { transform: scale(0.98); }
         .ref-icon-sq {
             width: 44px; height: 44px; border-radius: 12px;
-            background: rgba(34, 197, 94, 0.16); color: var(--accent-green);
-            display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+            background: rgba(34, 197, 94, 0.14);
+            display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0;
         }
 
         .section-caption {
@@ -641,27 +883,29 @@
 
         .account-card {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 14px; padding: 12px 14px; margin-bottom: 18px;
+            border-radius: 15px; padding: 12px 14px; margin-bottom: 18px;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .acc-left { display: flex; align-items: center; gap: 12px; }
+        .acc-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .acc-avatar {
-            width: 40px; height: 40px; border-radius: 12px; background: #26262e;
+            width: 40px; height: 40px; border-radius: 11px; background: #232329;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 16px; color: #fff;
+            font-weight: 800; font-size: 15px; color: #fff; flex-shrink: 0;
         }
         .acc-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-        .acc-sub { font-size: 12px; color: var(--text-muted); }
-        .acc-days { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+        .acc-sub { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
+        .acc-days { font-size: 12px; color: var(--text-muted); font-weight: 600; flex-shrink: 0; margin-left: 8px; }
 
         .settings-group {
             background: var(--bg-card); border: 1px solid var(--border-color);
-            border-radius: 14px; overflow: hidden; margin-bottom: 18px;
+            border-radius: 15px; overflow: hidden; margin-bottom: 18px;
         }
         .settings-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 13px 14px; border-bottom: 1px solid var(--border-color); cursor: pointer;
+            transition: background-color 0.2s ease;
         }
+        .settings-item:active { background: var(--bg-card-hover); }
         .settings-item:last-child { border-bottom: none; }
         .settings-item-left { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; }
         .settings-item-right { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
@@ -670,33 +914,47 @@
         .ios-switch input { opacity: 0; width: 0; height: 0; }
         .slider {
             position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2e2e36; transition: .25s; border-radius: 26px;
+            background-color: #2c2c34; transition: .3s var(--ease-fluid); border-radius: 26px;
         }
         .slider:before {
             position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
-            background-color: white; transition: .25s; border-radius: 50%;
+            background-color: white; transition: .3s var(--ease-spring); border-radius: 50%;
         }
         input:checked + .slider { background-color: var(--accent-green); }
         input:checked + .slider:before { transform: translateX(20px); }
 
         .modal-backdrop {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0, 0, 0, 0.82); z-index: 500; align-items: flex-end;
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 500;
+            display: flex;
+            align-items: flex-end;
+            pointer-events: none;
+            visibility: hidden;
+            transition: background 0.34s var(--ease-fluid), backdrop-filter 0.34s var(--ease-fluid), visibility 0.34s ease;
         }
-        .modal-backdrop.open { display: flex; }
+        .modal-backdrop.open {
+            background: rgba(0, 0, 0, 0.78);
+            backdrop-filter: blur(5px);
+            pointer-events: auto;
+            visibility: visible;
+        }
 
         .modal-sheet {
-            background: var(--bg-main); border-top: 1px solid var(--border-color);
-            border-radius: 22px 22px 0 0; width: 100%; max-height: 92vh; overflow-y: auto;
-            padding: 12px 16px 32px; animation: slideUp 0.22s ease-out;
+            background: var(--bg-main);
+            border-top: 1px solid var(--border-color);
+            border-radius: 22px 22px 0 0;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 12px 16px 32px;
+            transform: translateY(100%);
+            transition: transform 0.4s var(--ease-fluid);
         }
+        .modal-backdrop.open .modal-sheet { transform: translateY(0); }
 
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .sheet-handle { width: 38px; height: 4px; background: #3a3a42; border-radius: 4px; margin: 0 auto 14px; }
+        .sheet-handle { width: 38px; height: 4px; background: #383840; border-radius: 4px; margin: 0 auto 14px; }
 
         .modal-header {
             display: flex; justify-content: space-between; align-items: center;
@@ -704,9 +962,11 @@
         }
         .modal-close {
             width: 30px; height: 30px; border-radius: 50%; background: #222228; border: none;
-            color: var(--text-muted); font-size: 16px; cursor: pointer;
+            color: var(--text-muted); font-size: 15px; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s ease, background 0.2s ease;
         }
+        .modal-close:active { transform: scale(0.9); background: #2c2c34; }
 
         .switch-row {
             background: var(--bg-card); border: 1px solid var(--border-color);
@@ -731,17 +991,25 @@
             background: var(--bg-card); border: 1px solid var(--border-color);
             color: var(--text-main); padding: 9px 14px; border-radius: 12px;
             font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: transform 0.18s ease;
         }
+        .preset-chip:active { transform: scale(0.95); }
 
         .primary-orange-btn {
             width: 100%; background: var(--accent-orange); border: none; color: #ffffff;
             padding: 15px; border-radius: 14px; font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: transform 0.2s var(--ease-fluid), opacity 0.2s ease;
         }
+        .primary-orange-btn:active { transform: scale(0.975); opacity: 0.92; }
+
         .crypto-pay-btn {
             width: 100%; background: var(--bg-card); border: 1px solid var(--border-color);
             color: var(--text-main); padding: 14px; border-radius: 14px;
             font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px;
+            transition: transform 0.2s var(--ease-fluid);
         }
+        .crypto-pay-btn:active { transform: scale(0.975); }
+
         .disabled-btn {
             width: 100%; background: #1f1f24; border: 1px solid var(--border-color);
             color: var(--text-muted); padding: 13px; border-radius: 12px;
@@ -759,6 +1027,7 @@
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 12px; padding: 12px; text-align: center;
             font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer;
+            transition: all 0.2s ease;
         }
         .market-toggle.active {
             border-color: var(--accent-orange); background: rgba(255, 107, 44, 0.14); color: var(--accent-orange);
@@ -780,6 +1049,7 @@
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 12px; padding: 11px; text-align: center;
             font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer;
+            transition: all 0.2s ease;
         }
         .signal-chip.active {
             background: rgba(255, 107, 44, 0.16); border-color: var(--accent-orange); color: var(--accent-orange);
@@ -833,6 +1103,7 @@
         .plan-card {
             background: var(--bg-card); border: 1.5px solid var(--border-color);
             border-radius: 14px; padding: 14px 12px; cursor: pointer; position: relative;
+            transition: all 0.22s var(--ease-fluid);
         }
         .plan-card.selected { border-color: var(--accent-orange); background: #1f1916; color: #fff; }
         .plan-radio {
@@ -868,22 +1139,23 @@
         .build-tag { font-family: monospace; font-size: 11px; color: #52525b; margin-bottom: 16px; }
 
         .tour-overlay {
-            display: none; position: fixed; inset: 0; background: var(--bg-main);
-            z-index: 600; flex-direction: column; justify-content: space-between; padding: 16px 16px 28px;
+            position: fixed; inset: 0; background: var(--bg-main);
+            z-index: 600; overflow-y: auto; padding: 12px 0 36px;
+            opacity: 0; pointer-events: none; visibility: hidden;
+            transform: translateY(14px);
+            transition: opacity 0.35s var(--ease-fluid), transform 0.35s var(--ease-fluid), visibility 0.35s ease;
         }
-        .tour-overlay.open { display: flex; }
-        .tour-preview-card {
-            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 22px;
-            padding: 16px; margin: 10px 0; flex: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
+        .tour-overlay.open {
+            opacity: 1; pointer-events: auto; visibility: visible; transform: translateY(0);
         }
-        .tour-dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 18px; }
-        .tour-dot { width: 8px; height: 8px; border-radius: 4px; background: #3f3f46; cursor: pointer; }
+        .tour-dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 22px; }
+        .tour-dot { width: 8px; height: 8px; border-radius: 4px; background: #3f3f46; cursor: pointer; transition: width 0.28s var(--ease-fluid), background 0.28s ease; }
         .tour-dot.active { width: 22px; background: var(--accent-orange); }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
-            background: rgba(18, 18, 21, 0.96); backdrop-filter: blur(12px);
+            background: rgba(14, 14, 17, 0.94); backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border-top: 1px solid var(--border-color);
             display: flex; justify-content: space-around; padding: 8px 4px 12px; z-index: 200;
         }
@@ -891,29 +1163,23 @@
         .nav-item {
             display: flex; flex-direction: column; align-items: center; gap: 4px;
             color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; flex: 1;
+            transition: color 0.22s ease, transform 0.22s var(--ease-spring);
         }
+        .nav-item:active { transform: scale(0.9); }
         .nav-item.active { color: var(--accent-orange); }
-        .nav-icon { font-size: 18px; }
+        .nav-icon { display: flex; align-items: center; justify-content: center; height: 22px; }
+        .nav-icon svg { width: 20px; height: 20px; stroke-width: 2; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="logo-box">
-            <div class="logo-icon">🎁</div>
-            <span>GiftParser</span>
-        </div>
-        <div class="lang-switch">
-            <button class="lang-btn active" onclick="setLang('ru', this)">RU</button>
-            <button class="lang-btn" onclick="setLang('en', this)">EN</button>
-        </div>
-    </div>
 
     <div class="container">
         <div id="tab-activity" class="tab-section active">
             <div class="page-title-row">
                 <div class="page-title">
-                    <div class="title-icon-badge">📈</div>
+                    <div class="title-icon-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2-2v-2"/><path d="M9 12h1l1.5-3 2 6 1.5-3h1"/></svg>
+                    </div>
                     <span id="txt-title">Активность</span>
                 </div>
                 <div class="date-badge">
@@ -928,12 +1194,12 @@
                     <div class="stat-value" id="stat-upgrades">0</div>
                     <div class="mini-bars" id="bars-yellow"></div>
                 </div>
-                <div class="stat-card filter-card teal" id="card-craft" onclick="toggleActivityFilter('craft')">
+                <div class="stat-card filter-card teal selected" id="card-craft" onclick="toggleActivityFilter('craft')">
                     <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-teal);"></span><span id="txt-crafts">крафтов</span></div></div>
                     <div class="stat-value" id="stat-crafts">0</div>
                     <div class="mini-bars" id="bars-teal"></div>
                 </div>
-                <div class="stat-card filter-card red" id="card-burn" onclick="toggleActivityFilter('burn')">
+                <div class="stat-card filter-card red selected" id="card-burn" onclick="toggleActivityFilter('burn')">
                     <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-red);"></span><span id="txt-burned">сожжено</span></div></div>
                     <div class="stat-value" id="stat-burned">0</div>
                     <div class="mini-bars" id="bars-red"></div>
@@ -946,41 +1212,9 @@
             </div>
 
             <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" class="search-input" id="search-activity" placeholder="Коллекция, номер, модель, владелец..." oninput="applyActivityFilters()">
-            </div>
-
-            <div class="feed-list" id="feed-list"></div>
-        </div>
-
-        <div id="tab-arbitrage" class="tab-section">
-            <div class="page-title-row">
-                <div class="page-title">
-                    <div class="title-icon-badge">⇄</div>
-                    <span id="txt-arb-title">Арбитраж</span>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-blue);"></span><span>связок</span></div></div>
-                    <div class="stat-value" id="arb-count">0</div>
-                    <div class="stat-subtext">за 24 ч</div>
-                </div>
-                <div class="stat-card" onclick="scrollToBestArb()">
-                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-green);"></span><span>лучшая</span></div><span>›</span></div>
-                    <div class="stat-value" id="arb-best">— <span style="font-size: 13px; color: var(--text-muted);">TON</span></div>
-                    <div class="stat-subtext">чистыми</div>
-                </div>
-                <div class="stat-card" onclick="openModalById('arb-settings-modal')">
-                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-orange);"></span><span>настройки</span></div><span>›</span></div>
-                    <div class="stat-value" id="arb-filter-label" style="font-size: 18px;">все</div>
-                    <div class="stat-subtext" id="arb-dm-status">🔕 без лички</div>
-                </div>
-            </div>
-
-            <div class="search-box">
-               <span class="search-icon">🔍</span>
+                <span class="search-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </span>
                 <input type="text" class="search-input" id="search-arb" placeholder="Коллекция, номер, модель, фон..." oninput="applyArbFilters()">
             </div>
 
@@ -997,12 +1231,18 @@
         <div id="tab-map" class="tab-section">
             <div class="page-title-row">
                 <div class="page-title">
-                    <div class="title-icon-badge">⊞</div>
+                    <div class="title-icon-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    </div>
                     <span id="txt-map-title">Карта рынка</span>
                 </div>
                 <div class="map-actions">
-                    <button class="icon-action-btn" onclick="exportMapStats()">⬇</button>
-                    <button class="icon-action-btn orange" onclick="shareMarketMap()">⬆</button>
+                    <button class="icon-action-btn" onclick="exportMapStats()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    <button class="icon-action-btn orange" onclick="shareMarketMap()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -1032,40 +1272,54 @@
                 </div>
             </div>
 
-            <div class="treemap-wrapper" id="treemap-container"></div>
+            <div class="treemap-wrapper" id="treemap-container">
+                <div id="treemap-nodes-layer" style="position:relative; width:100%; height:100%;"></div>
+                <div class="map-toast" id="map-history-toast">История для этого периода копится с 2 ноября</div>
+            </div>
         </div>
 
         <div id="tab-feed" class="tab-section">
             <div class="page-title-row">
                 <div class="page-title">
-                    <div class="title-icon-badge">🔔</div>
+                    <div class="title-icon-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
                     <span id="txt-feed-title">Моя лента</span>
                 </div>
             </div>
 
-            <div class="ticker-strip" id="feed-ticker">
-                <div class="ticker-item">Telegram Market <span>Живой поток лотов</span></div>
+            <div class="ticker-marquee">
+                <div class="ticker-track" id="feed-ticker-track">
+                    <span><span class="ticker-label-orange">ОБЪЁМА · 24 Ч</span> &nbsp; Resistance Dog <span style="color:#fff;">59,1 тыс. TON</span> · 98 продаж</span>
+                    <span><span class="ticker-label-orange">ОБЪЁМА · 24 Ч</span> &nbsp; Plush Pepe <span style="color:#fff;">42,4 тыс. TON</span> · 12 продаж</span>
+                    <span><span class="ticker-label-orange">ОБЪЁМА · 24 Ч</span> &nbsp; Resistance Dog <span style="color:#fff;">59,1 тыс. TON</span> · 98 продаж</span>
+                    <span><span class="ticker-label-orange">ОБЪЁМА · 24 Ч</span> &nbsp; Plush Pepe <span style="color:#fff;">42,4 тыс. TON</span> · 12 продаж</span>
+                </div>
             </div>
 
             <div class="markets-stat-card">
                 <div class="market-bar-row">
                     <div class="market-name">Portals</div>
-                    <div class="progress-track"><div class="progress-fill-blue" id="bar-portals" style="width: 15%;"></div></div>
-                    <div class="market-sales-count" id="sales-portals">0 лотов</div>
+                    <div class="progress-track"><div class="progress-fill-blue" id="bar-portals" style="width: 72%;"></div></div>
+                    <div class="market-sales-count" id="sales-portals">0 продаж</div>
                 </div>
                 <div class="market-bar-row">
                     <div class="market-name">MRKT</div>
-                    <div class="progress-track"><div class="progress-fill-blue" id="bar-mrkt" style="width: 85%;"></div></div>
-                    <div class="market-sales-count" id="sales-mrkt">0 лотов</div>
+                    <div class="progress-track"><div class="progress-fill-blue" id="bar-mrkt" style="width: 0%;"></div></div>
+                    <div class="market-sales-count" id="sales-mrkt">0 продаж</div>
                 </div>
             </div>
 
             <div class="search-filter-row">
                 <div class="search-box">
-                    <span class="search-icon">🔍</span>
+                    <span class="search-icon">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
                     <input type="text" class="search-input" id="search-feed" placeholder="Коллекция, номер, модель, фон..." oninput="renderMyFeed()">
                 </div>
-                <button class="filter-open-btn" id="btn-open-feed-filters" onclick="openFeedFiltersModal()">🎛</button>
+                <button class="filter-open-btn" id="btn-open-feed-filters" onclick="openFeedFiltersModal()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+                </button>
             </div>
 
             <div class="active-feed-chips" id="active-feed-chips"></div>
@@ -1075,19 +1329,23 @@
         <div id="tab-settings" class="tab-section">
             <div class="page-title-row">
                 <div class="page-title">
-                    <div class="title-icon-badge">⚙️</div>
+                    <div class="title-icon-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </div>
                     <span id="txt-settings-title">Настройки</span>
                 </div>
             </div>
 
-            <div class="pro-banner-card" onclick="openModalById('pro-pay-modal')">
-                <div class="pro-logo-sq">🎁</div>
+            <div class="pro-banner-card" onclick="openPaywallOverlay(false)">
+                <div class="pro-logo-sq">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2-2v-2"/><path d="M9 12h1l1.5-3 2 6 1.5-3h1"/></svg>
+                </div>
                 <div class="pro-banner-info">
                     <div class="pro-title">GiftParser Pro</div>
-                    <div class="pro-status" id="pro-expiry-text">● Пробный доступ: 1 день</div>
+                   <div class="pro-status" id="pro-expiry-text">● Пробный доступ: 1 день</div>
                     <div class="pro-progress-bg"><div class="pro-progress-fill"></div></div>
                 </div>
-                <span style="color: var(--text-muted);">›</span>
+                <span style="color: var(--text-muted); font-size:18px;">›</span>
             </div>
 
             <div class="ref-banner-card" onclick="openRefModal()">
@@ -1096,7 +1354,7 @@
                     <div style="font-size:15px; font-weight:800; margin-bottom:3px;">Пригласи друга — 10% с его оплат</div>
                     <div style="font-size:12px; color:var(--text-muted);">Звёзды — звёздами, крипта — криптой</div>
                 </div>
-                <span style="color: var(--text-muted);">›</span>
+                <span style="color: var(--text-muted); font-size:18px;">›</span>
             </div>
 
             <div class="section-caption">АККАУНТ</div>
@@ -1119,7 +1377,7 @@
                 </div>
                 <div class="settings-item" onclick="openModalById('theme-modal')">
                     <div class="settings-item-left"><span>🌙</span><span>Тема</span></div>
-                    <div class="settings-item-right"><span id="settings-theme-label">Системная</span><span>›</span></div>
+                    <div class="settings-item-right"><span id="settings-theme-label">Тёмная</span><span>›</span></div>
                 </div>
                 <div class="settings-item">
                     <div class="settings-item-left"><span>🔔</span><span>Сигналы в личку</span></div>
@@ -1140,18 +1398,22 @@
             </div>
             <div class="settings-group">
                 <div class="settings-item">
-                    <div class="settings-item-left"><span class="dot-green"></span><span>Telegram Market</span></div>
-                    <div class="settings-item-right"><span id="src-tg-stats">активен</span></div>
+                    <div class="settings-item-left"><span class="dot-green"></span><span>Portals</span></div>
+                    <div class="settings-item-right"><span id="src-portals-stats">активен</span></div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-left"><span class="dot-green"></span><span>MRKT</span></div>
+                    <div class="settings-item-right"><span id="src-mrkt-stats">активен</span></div>
                 </div>
             </div>
 
             <div class="section-caption">О СЕРВИСЕ</div>
             <div class="settings-group">
-                <div class="settings-item" onclick="openAppTour()">
+                <div class="settings-item" onclick="openPaywallOverlay(true)">
                     <div class="settings-item-left"><span>▶️</span><span>Обзор приложения</span></div>
                     <div class="settings-item-right"><span>›</span></div>
                 </div>
-                <div class="settings-item" onclick="openSupport()">
+                <div class="settings-item" onclick="openBotSupport()">
                     <div class="settings-item-left"><span>❓</span><span>Поддержка</span></div>
                     <div class="settings-item-right"><span>›</span></div>
                 </div>
@@ -1265,33 +1527,6 @@
         </div>
     </div>
 
-    <div class="modal-backdrop" id="pro-pay-modal" onclick="closeModalById(event, 'pro-pay-modal')">
-        <div class="modal-sheet" onclick="event.stopPropagation()">
-            <div class="sheet-handle"></div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                <div style="font-size:24px; font-weight:900; line-height:1.15;">Лучшие подарки —<br><span style="color:var(--accent-orange);">на шаг раньше.</span></div>
-                <button class="modal-close" style="position:static;" onclick="closeModalById(null, 'pro-pay-modal')">✕</button>
-            </div>
-            <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">Сигналы с Telegram Market, Portals и MRKT — прямо в ваш Telegram.</div>
-            <div class="pro-features-box">
-                <div class="pro-feat-row"><div class="pro-feat-num">01</div><div><div class="pro-feat-title">Арбитраж и снайп лотов</div><div class="pro-feat-desc">Лоты ниже флора коллекции с учётом всех комиссий.</div></div></div>
-                <div class="pro-feat-row"><div class="pro-feat-num">02</div><div><div class="pro-feat-title">Живая лента улучшений</div><div class="pro-feat-desc">Новые выставления с редкостью модели, фона и узора.</div></div></div>
-                <div class="pro-feat-row"><div class="pro-feat-num">03</div><div><div class="pro-feat-title">Уведомления по вашим фильтрам</div><div class="pro-feat-desc">Коллекции, бюджет, чёрные фоны и красивые номера.</div></div></div>
-            </div>
-            <div class="plans-grid">
-                <div class="plan-card" id="plan-week" onclick="selectProPlan('week')"><div class="plan-radio"></div><div style="font-size:15px; font-weight:800; margin-bottom:2px;">Неделя</div><div style="font-size:12px; color:var(--text-muted);">7 дней</div></div>
-                <div class="plan-card selected" id="plan-month" onclick="selectProPlan('month')"><div class="plan-radio"></div><div style="font-size:15px; font-weight:800; margin-bottom:2px;">Месяц</div><div style="font-size:12px; color:var(--text-muted);">30 дней</div></div>
-            </div>
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
-                <div style="font-size:32px; font-weight:900;" id="pro-price-stars">400 ⭐️</div>
-                <div style="text-align:right;" id="pro-discount-block"><div style="background:rgba(34,197,94,0.18); color:#4ade80; padding:3px 8px; border-radius:8px; font-size:11px; font-weight:800;">-20% ПЕРВЫЙ МЕСЯЦ</div><div style="font-size:13px; color:var(--text-muted); text-decoration:line-through; margin-top:3px;">500 ⭐️</div></div>
-            </div>
-            <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px;" id="pro-benefit-text">выгода 53% по сравнению с недельной оплатой</div>
-            <button type="button" class="primary-orange-btn" id="btn-pay-stars" onclick="payWithTelegramStars()">Оформить за 400 ⭐️</button>
-            <button type="button" class="crypto-pay-btn" id="btn-pay-crypto" onclick="safeAlert('Подключите токен @CryptoBot в main.py для приёма USDT/TON')">Оплатить криптой · $5.20</button>
-        </div>
-    </div>
-
     <div class="modal-backdrop" id="ref-modal" onclick="closeModalById(event, 'ref-modal')">
         <div class="modal-sheet" onclick="event.stopPropagation()">
             <div class="sheet-handle"></div>
@@ -1334,6 +1569,17 @@
             <div class="sheet-handle"></div>
             <div class="modal-header"><span>Тема</span><button class="modal-close" onclick="closeModalById(null, 'theme-modal')">✕</button></div>
             <div class="option-list-card">
+                <div class="option-row" onclick="chooseLanguage('ru')"><span>Русский</span><span class="check-orange" id="chk-lang-ru">✓</span></div>
+                <div class="option-row" onclick="chooseLanguage('en')"><span>English</span><span class="check-orange" id="chk-lang-en" style="display:none;">✓</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="theme-modal" onclick="closeModalById(event, 'theme-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Тема</span><button class="modal-close" onclick="closeModalById(null, 'theme-modal')">✕</button></div>
+            <div class="option-list-card">
                 <div class="option-row" onclick="chooseTheme('system', 'Системная')"><span>Системная</span><span class="check-orange" id="chk-theme-system">✓</span></div>
                 <div class="option-row" onclick="chooseTheme('dark', 'Тёмная')"><span>Тёмная</span><span class="check-orange" id="chk-theme-dark" style="display:none;">✓</span></div>
                 <div class="option-row" onclick="chooseTheme('light', 'Светлая')"><span>Светлая</span><span class="check-orange" id="chk-theme-light" style="display:none;">✓</span></div>
@@ -1350,35 +1596,207 @@
     </div>
 
     <div class="tour-overlay" id="app-tour-overlay">
-        <div style="display:flex; justify-content:space-between; align-items:center;"><div class="logo-box"><div class="logo-icon">🎁</div><span>GiftParser</span></div></div>
-        <div class="tour-preview-card" id="tour-slide-card" onclick="nextTourSlide()"></div>
-        <div style="text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 16px; margin-bottom: 14px;">
+            <div style="display:flex; align-items:center; gap:9px; font-weight:800; font-size:18px;">
+                <div class="title-icon-badge" style="width:30px;height:30px;border-radius:8px;box-shadow:none;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 8V6a2 2 0 0 1 2-2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2-2v-2"/><path d="M9 12h1l1.5-3 2 6 1.5-3h1"/></svg>
+                </div>
+                <span>GiftParser</span>
+            </div>
+            <div style="display:flex;background:#16161a;border-radius:10px;padding:2px;border:1px solid #26262c;">
+                <button class="lang-btn active" style="padding:5px 10px;font-size:12px;border-radius:8px;border:none;background:var(--accent-orange);color:#fff;font-weight:700;" onclick="setTourLang('ru', this)">RU</button>
+                <button class="lang-btn" style="padding:5px 10px;font-size:12px;border-radius:8px;border:none;background:transparent;color:#86868d;font-weight:700;" onclick="setTourLang('en', this)">EN</button>
+            </div>
+        </div>
+
+        <div id="tour-carousel" onscroll="onTourScroll()" style="display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; -webkit-overflow-scrolling:touch; gap:12px; padding: 0 16px 6px;">
+            <div style="flex:0 0 100%; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; max-width:305px; background:#0f0f12; border:2px solid #24242a; border-radius:28px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.6);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px;"><span style="background:var(--accent-orange);color:#111;border-radius:7px;padding:3px 5px;font-size:11px;">📈</span> <span class="tr-s1-hdr">Активность</span></div>
+                        <span style="background:#18181d;border:1px solid #26262c;padding:3px 9px;border-radius:12px;font-size:11px;">🟢 16.11</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:12px;">
+                        <div style="background:#16161b;border:1px solid rgba(234,179,8,0.45);border-radius:11px;padding:8px;"><div style="font-size:9px;color:#86868d;">🟡 улучшений</div><div style="font-size:15px;font-weight:800;margin:3px 0;">5 851</div></div>
+                        <div style="background:#16161b;border:1px solid rgba(45,212,191,0.45);border-radius:11px;padding:8px;"><div style="font-size:9px;color:#86868d;">🔵 крафтов</div><div style="font-size:15px;font-weight:800;margin:3px 0;">69</div></div>
+                        <div style="background:#16161b;border:1px solid rgba(239,68,68,0.45);border-radius:11px;padding:8px;"><div style="font-size:9px;color:#86868d;">🔴 сожжено</div><div style="font-size:15px;font-weight:800;margin:3px 0;">121</div></div>
+                    </div>
+                    <div style="background:#16161b; border:1px solid #24242a; border-radius:13px; overflow:hidden; text-align:left;">
+                        <div style="padding:8px 10px; border-bottom:1px solid #222228; display:flex; justify-content:space-between; align-items:center;">
+                            <div><div style="font-size:12px;font-weight:700;">Fresh Socks <span style="color:#86868d;">#166144</span></div><div style="font-size:10px;color:#eab308;">● УЛУЧШЕНИЕ <span style="color:#86868d;">Ballerina 2%</span></div></div>
+                            <div style="text-align:right;"><div style="font-size:11px;font-weight:700;">≈4.39</div><div style="font-size:9px;color:#86868d;">2 м</div></div>
+                        </div>
+                        <div style="padding:8px 10px; border-bottom:1px solid #222228; display:flex; justify-content:space-between; align-items:center;">
+                            <div><div style="font-size:12px;font-weight:700;">Snake Box <span style="color:#86868d;">#188649</span></div><div style="font-size:10px;color:#eab308;">● УЛУЧШЕНИЕ <span style="color:#86868d;">Lemonade 2%</span></div></div>
+                            <div style="text-align:right;"><div style="font-size:11px;font-weight:700;">≈3.59</div><div style="font-size:9px;color:#86868d;">2 м</div></div>
+                        </div>
+                        <div style="padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
+                            <div><div style="font-size:12px;font-weight:700;">Mirage Lamp <span style="color:#86868d;">#81698</span></div><div style="font-size:10px;color:#eab308;">● УЛУЧШЕНИЕ <span style="color:#86868d;">Canopy 2%</span></div></div>
+                            <div style="text-align:right;"><div style="font-size:11px;font-weight:700;">≈5.60</div><div style="font-size:9px;color:#86868d;">2 м</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:0 0 100%; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; max-width:305px; background:#0f0f12; border:2px solid #24242a; border-radius:28px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.6); text-align:left;">
+                    <div style="background:linear-gradient(145deg, #c93b4b, #8f2230); border-radius:16px; height:115px; display:flex; align-items:center; justify-content:center; font-size:52px; margin-bottom:10px;">🐶</div>
+                    <span style="background:rgba(45,212,191,0.16); color:#2dd4bf; padding:2px 7px; border-radius:6px; font-size:9px; font-weight:800;">● КРАФТ</span>
+                    <div style="font-size:16px; font-weight:800; margin:4px 0 2px;">Resistance Dog <span style="color:#86868d;font-weight:500;">#14141</span></div>
+                    <div style="font-size:10px; color:#86868d; margin-bottom:10px;">t.me/nft/ResistanceDog-14141 · 17 ч назад</div>
+                    <div style="background:#16161b; border:1px solid #24242a; border-radius:11px; padding:8px 10px; font-size:11px; display:flex; flex-direction:column; gap:6px;">
+                        <div style="display:flex; justify-content:space-between;"><span style="color:#86868d;">Модель</span><strong>Resisted</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span style="color:#86868d;">Фон</span><strong>Fire Engine · 1%</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span style="color:#86868d;">Узор</span><strong>Viper · 0.5%</strong></div>
+                        <div style="display:flex; justify-content:space-between; border-top:1px solid #24242a; padding-top:6px;"><span style="color:#86868d;">Владелец</span><strong>Cappuccino</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:0 0 100%; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; max-width:305px; background:#0f0f12; border:2px solid #24242a; border-radius:28px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.6); text-align:left;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin-bottom:10px;"><span style="background:var(--accent-orange);color:#111;border-radius:7px;padding:3px 6px;font-size:11px;">⇄</span> Арбитраж</div>
+                    <div style="background:var(--accent-orange); color:#fff; text-align:center; padding:10px; border-radius:11px; font-size:13px; font-weight:700; margin-bottom:7px;">Купить на MRKT →</div>
+                    <div style="background:#1c1c22; border:1px solid #2a2a32; color:#fff; text-align:center; padding:9px; border-radius:11px; font-size:12px; font-weight:600; margin-bottom:10px;">Открыть подарок</div>
+                    <div style="background:#1d1613; border:1px solid rgba(255,107,44,0.35); border-radius:11px; padding:9px 10px; font-size:11px; font-weight:600; margin-bottom:10px;">Купить на MRKT за 48.96 → продать на MRKT ≈ 51.50 TON</div>
+                    <div style="background:#16161b; border:1px solid #24242a; border-radius:11px; padding:8px 10px; font-size:11px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span style="color:#eab308;font-weight:700;">● MRKT (медиана 51.50)</span><span style="color:#22c55e;font-size:9px;font-weight:800;">ЛУЧШЕ ПРОДАВАТЬ ЗДЕСЬ</span></div>
+                        <div style="display:flex; justify-content:space-between; color:#86868d; padding:3px 0;"><span>#1227 · Sky Blue</span><span style="color:#fff;">61.20 · 16 ч</span></div>
+                        <div style="display:flex; justify-content:space-between; color:#86868d; padding:3px 0;"><span>#4298 · Indigo Dye</span><span style="color:#fff;">53.52 · 12 окт.</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:0 0 100%; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; max-width:305px; background:#0f0f12; border:2px solid #24242a; border-radius:28px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.6); text-align:left;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin-bottom:10px;"><span style="background:var(--accent-orange);color:#111;border-radius:7px;padding:3px 6px;font-size:11px;">🔔</span> Моя лента</div>
+                    <div style="background:#16161b; border:1px solid #24242a; border-radius:12px; padding:10px; margin-bottom:10px; font-size:11px;">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;"><span style="width:42px;font-weight:700;">MRKT</span><div style="flex:1;height:5px;background:#26262e;border-radius:3px;"><div style="width:80%;height:100%;background:#eab308;border-radius:3px;"></div></div><span style="color:#86868d;">55 738 продаж</span></div>
+                        <div style="display:flex; align-items:center; gap:8px;"><span style="width:42px;font-weight:700;">Portals</span><div style="flex:1;height:5px;background:#26262e;border-radius:3px;"><div style="width:25%;height:100%;background:#3b82f6;border-radius:3px;"></div></div><span style="color:#86868d;">13 599 продаж</span></div>
+                    </div>
+                    <div style="background:#18181d; border:1px solid #2c2c35; border-radius:16px; padding:12px;">
+                        <div style="font-size:14px; font-weight:800; margin-bottom:4px;">Мои фильтры</div>
+                        <div style="font-size:10px; color:#86868d; margin-bottom:10px;">БЫСТРЫЙ СТАРТ</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                            <span style="background:#222229;border:1px solid #303038;padding:5px 9px;border-radius:8px;font-size:10px;">Выгода от 15%</span>
+                            <span style="background:#222229;border:1px solid #303038;padding:5px 9px;border-radius:8px;font-size:10px;">Чёрный фон</span>
+                            <span style="background:#222229;border:1px solid #303038;padding:5px 9px;border-radius:8px;font-size:10px;">Красивые номера</span>
+                        </div>
+                        <div style="background:var(--accent-orange); color:#fff; text-align:center; padding:9px; border-radius:10px; font-size:12px; font-weight:700;">+ Новый фильтр</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="flex:0 0 100%; scroll-snap-align:center; display:flex; flex-direction:column; align-items:center;">
+                <div style="width:100%; max-width:305px; background:#0f0f12; border:2px solid #24242a; border-radius:28px; padding:14px; box-shadow:0 16px 40px rgba(0,0,0,0.6); text-align:left;">
+                    <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin-bottom:10px;"><span style="background:var(--accent-orange);color:#111;border-radius:7px;padding:3px 6px;font-size:11px;">⚙️</span> Настройки</div>
+                    <div style="background:linear-gradient(135deg,#251914,#161518); border:1px solid rgba(255,107,44,0.4); border-radius:13px; padding:10px; margin-bottom:10px; display:flex; align-items:center; gap:10px;">
+                        <div style="width:34px;height:34px;background:var(--accent-orange);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#111;font-weight:800;">🎁</div>
+                        <div style="flex:1;"><div style="font-size:13px;font-weight:800;">GiftParser Pro</div><div style="font-size:10px;color:#22c55e;">● активна · 30 дней</div></div>
+                    </div>
+                    <div style="background:#16161b; border:1px solid #24242a; border-radius:12px; padding:8px 10px; font-size:11px; display:flex; flex-direction:column; gap:8px;">
+                        <div style="display:flex; justify-content:space-between;"><span>文A Язык</span><span style="color:#86868d;">Русский ›</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🌙 Тема</span><span style="color:#86868d;">Тёмная ›</span></div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;"><span>🔔 Сигналы в личку</span><span style="background:#22c55e;width:28px;height:16px;border-radius:10px;display:inline-block;"></span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>🎛 Фильтры ленты</span><span style="color:#86868d;">›</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align:center; padding: 0 16px;">
             <div style="color:var(--accent-orange); font-family:monospace; font-size:12px; font-weight:800; margin-bottom:6px;" id="tour-step-num">01 / 05</div>
-            <div style="font-size:22px; font-weight:800; margin-bottom:8px;" id="tour-step-title">Живая активность</div>
-            <div style="font-size:13px; color:var(--text-muted); line-height:1.45; max-width:300px; margin:0 auto;" id="tour-step-desc"></div>
+            <div style="font-size:22px; font-weight:800; margin-bottom:6px;" id="tour-step-title">Живая активность</div>
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.45; max-width:310px; margin:0 auto;" id="tour-step-desc">Улучшения, крафты и сожжения подарков в реальном времени — с редкостью атрибутов.</div>
             <div class="tour-dots" id="tour-dots-row"></div>
+        </div>
+
+        <div id="paywall-cta-section" style="padding: 8px 16px 0; text-align:left;">
+            <div style="font-size:28px; font-weight:900; line-height:1.15; margin-bottom:10px;">
+                Лучшие подарки —<br><span style="color:var(--accent-orange);">на шаг раньше.</span>
+            </div>
+            <div style="font-size:13px; color:var(--text-muted); margin-bottom:18px; line-height:1.4;">
+                Сигналы с Portals, MRKT и Tonnel — прямо в ваш Telegram.
+            </div>
+
+            <div class="plans-grid">
+                <div class="plan-card" id="plan-week" onclick="selectProPlan('week')">
+                    <div class="plan-radio"></div>
+                    <div style="font-size:16px; font-weight:800; margin-bottom:2px;">Неделя</div>
+                    <div style="font-size:12px; color:var(--text-muted);">7 дней</div>
+                </div>
+                <div class="plan-card selected" id="plan-month" onclick="selectProPlan('month')">
+                    <div class="plan-radio"></div>
+                    <div style="font-size:16px; font-weight:800; margin-bottom:2px;">Месяц</div>
+                    <div style="font-size:12px; color:var(--text-muted);">30 дней</div>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                <div style="font-size:34px; font-weight:900;" id="pro-price-stars">400 ⭐️</div>
+                <div style="text-align:right;" id="pro-discount-block">
+                    <div style="background:rgba(34,197,94,0.18); color:#4ade80; padding:3px 8px; border-radius:8px; font-size:11px; font-weight:800;">-20% ПЕРВЫЙ МЕСЯЦ</div>
+                    <div style="font-size:14px; color:var(--text-muted); text-decoration:line-through; margin-top:3px;">500 ⭐️</div>
+                </div>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:18px;" id="pro-benefit-text">
+                выгода 53% по сравнению с недельной оплатой
+            </div>
+
+            <button type="button" class="primary-orange-btn" id="btn-pay-stars" onclick="payWithTelegramStars()">Оформить за 400 ⭐️</button>
+            <button type="button" class="crypto-pay-btn" id="btn-pay-crypto" onclick="safeAlert('Подключите токен @CryptoBot в main.py для приёма USDT/TON')">Оплатить криптой · $5.20</button>
+
+            <button type="button" id="btn-start-trial" onclick="activateFreeTrialDay()" style="width:100%; background:none; border:none; color:var(--accent-orange); font-size:15px; font-weight:700; padding:16px 0 8px; cursor:pointer; text-align:center;">
+                Попробовать 1 день бесплатно
+            </button>
+
+            <div style="font-size:11px; color:var(--text-muted); text-align:center; line-height:1.45; margin-top:6px;">
+                Неделя и первый месяц — разовые платежи, без автосписаний. Криптой — через @CryptoBot (USDT, TON и др.), разовый платёж.
+            </div>
+
+            <button type="button" onclick="refreshPaymentStatus()" style="width:100%; background:none; border:none; color:var(--text-muted); font-size:13px; font-weight:600; padding:18px 0 6px; cursor:pointer; text-align:center;">
+                Я уже оплатил — обновить
+            </button>
+        </div>
+
+        <div id="tour-only-close-box" style="display:none; padding: 8px 16px 0;">
             <button type="button" class="primary-orange-btn" onclick="closeAppTour()">Закрыть обзор</button>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('activity', this)"><span class="nav-icon">📈</span><span>Активность</span></div>
-        <div class="nav-item" onclick="switchTab('arbitrage', this)"><span class="nav-icon">⇄</span><span>Арбитраж</span></div>
-        <div class="nav-item" onclick="switchTab('map', this)"><span class="nav-icon">⊞</span><span>Карта</span></div>
-        <div class="nav-item" onclick="switchTab('feed', this)"><span class="nav-icon">🔔</span><span>Лента</span></div>
-        <div class="nav-item" onclick="switchTab('settings', this)"><span class="nav-icon">⚙️</span><span>Настройки</span></div>
+        <div class="nav-item active" onclick="switchTab('activity', this)">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <span id="nav-txt-act">Активность</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('arbitrage', this)">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l4 4-4 4"/><path d="M20 7H4"/><path d="M8 21l-4-4 4-4"/><path d="M4 17h16"/></svg></span>
+            <span id="nav-txt-arb">Арбитраж</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('map', this)">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span>
+            <span id="nav-txt-map">Карта</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('feed', this)">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+            <span id="nav-txt-feed">Лента</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('settings', this)">
+            <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span>
+            <span id="nav-txt-set">Настройки</span>
+        </div>
     </div>
 
     <script>
-        const SUPPORT_USERNAME = "durov"; // Впишите сюда ваш Telegram username без @
+        const BOT_USERNAME = "your_bot_username";
 
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
         if (tg) {
             tg.ready();
             tg.expand();
             try {
-                tg.setHeaderColor('#0e0e10');
-                tg.setBackgroundColor('#0e0e10');
+                tg.setHeaderColor('#0c0c0e');
+                tg.setBackgroundColor('#0c0c0e');
             } catch (e) {}
         }
 
@@ -1399,8 +1817,9 @@
         let currentLang = 'ru';
         let secondsAgo = 0;
         let userHasAccess = true;
+        let trialUsed = false;
 
-        let activeActivityFilters = new Set(['upgrade']);
+        let activeActivityFilters = new Set(['upgrade', 'craft', 'burn']);
         const now = new Date();
         document.getElementById('current-date').innerText = String(now.getDate()).padStart(2, '0') + '.' + String(now.getMonth() + 1).padStart(2, '0');
 
@@ -1410,9 +1829,9 @@
                 el.innerHTML = heights.map(h => `<div class="bar" style="height:${h}%;background:${color};"></div>`).join('');
             }
         }
-        renderBars('bars-yellow', '#eab308', [35, 65, 45, 90, 60, 100]);
-        renderBars('bars-teal', '#2dd4bf', [25, 40, 30, 50, 45, 65]);
-        renderBars('bars-red', '#ef4444', [40, 20, 60, 35, 70, 50]);
+        renderBars('bars-yellow', '#eab308', [35, 60, 45, 80, 95, 50, 70, 40, 85, 65, 90, 55, 75, 45, 60, 80]);
+        renderBars('bars-teal', '#2dd4bf', [20, 40, 30, 70, 50, 85, 40, 60, 90, 45, 75, 55, 80, 35, 65, 50]);
+        renderBars('bars-red', '#ef4444', [50, 30, 75, 40, 65, 90, 55, 80, 45, 70, 60, 85, 50, 95, 40, 75]);
 
         let activityData = [];
 
@@ -1437,11 +1856,12 @@
                 list.innerHTML = `<div class="empty-box"><div class="empty-symbol">∅</div><div class="empty-text">${currentLang === 'ru' ? 'Ожидание свежих лотов с маркета Telegram...' : 'Waiting for fresh Telegram market lots...'}</div></div>`;
                 return;
             }
-            list.innerHTML = filtered.map(item => {
-                const tagClass = item.type === 'craft' ? 'tag-craft' : (item.type === 'burn' ? 'tag-burn' : 'tag-upgrade');
+            list.innerHTML = `<div class="feed-group-card">` + filtered.map(item => {
+                const tagClass = item.type === 'craft' ? 'craft' : (item.type === 'burn' ? 'burn' : 'upgrade');
+                const priceClass = item.type === 'craft' ? 'teal' : (item.rightClass || '');
                 const avatarHtml = item.image ? `<img src="${item.image}" alt="" loading="lazy" onerror="this.parentElement.innerText='🎁'">` : '🎁';
-                return `<div class="feed-item" onclick="openGift('${item.slug}')"><div class="item-avatar">${avatarHtml}</div><div class="item-info"><div class="item-title">${item.name} <span>#${item.num}</span></div><div class="item-sub"><span class="tag-badge ${tagClass}">● ${item.tag}</span><span>${item.desc}</span></div></div><div class="item-right"><div class="item-price ${item.rightClass||''}">${item.rightTop}</div><div class="item-time">${item.time}</div></div></div>`;
-            }).join('');
+                return `<div class="feed-item" onclick="openGift('${item.slug}')"><div class="item-avatar">${avatarHtml}</div><div class="item-info"><div class="item-title">${item.name} <span>#${item.num}</span></div><div class="item-sub"><span class="tag-inline ${tagClass}">● ${item.tag}</span><span>${item.desc}</span></div></div><div class="item-right"><div class="item-price ${priceClass}">${item.rightTop}</div><div class="item-time">${item.time}</div></div></div>`;
+            }).join('') + `</div>`;
         }
 
         let currentArbRoute = 'all';
@@ -1519,15 +1939,37 @@
                 box.innerHTML = `<div class="empty-box"><div class="empty-symbol">∅</div><div class="empty-text">${currentLang === 'ru' ? 'Пока пусто — новые связки появятся здесь сами' : 'Empty so far — new deals will appear automatically'}</div></div>`;
                 return;
             }
-            box.innerHTML = `<div class="feed-list">` + filtered.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-badge tag-arb">● ${it.routeLabel}</span><span>${it.buyPrice} → ${it.sellPrice} TON</span></div></div><div class="item-right"><div class="profit-green">+${it.profit.toFixed(2)} TON</div><div class="item-time">+${it.roi}% чистыми</div></div></div>`).join('') + `</div>`;
+            box.innerHTML = `<div class="feed-group-card">` + filtered.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-inline portals">● PORTALS</span><span>${it.buyPrice} TON</span></div></div><div class="item-right"><div class="profit-green">+${it.profit.toFixed(2)}</div><div class="item-time">${it.roi}% · ${it.time || '12 ч'}</div></div></div>`).join('') + `</div>`;
         }
 
         function scrollToBestArb() { if (arbitrageData.length) openGift(arbitrageData.slug); }
 
         let mapMetric = 'change', mapTimeframe = '24h', mapTopLimit = 'all', mapDirection = 'all', mapData = [], selectedMapCol = null;
+        let mapToastTimer = null;
+
+        function formatTonShort(val) {
+            if (val >= 1000000) return (val / 1000000).toFixed(1).replace('.', ',') + ' млн TON';
+            if (val >= 1000) return (val / 1000).toFixed(1).replace('.', ',') + ' тыс. TON';
+            return val + ' TON';
+        }
+
+        function showMapHistoryToast() {
+            const toast = document.getElementById('map-history-toast');
+            if (!toast) return;
+            toast.innerText = currentLang === 'ru' ? 'История для этого периода копится с 2 ноября' : 'History for this period has been accumulating since Nov 2';
+            toast.classList.add('show');
+            clearTimeout(mapToastTimer);
+            mapToastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+        }
 
         function setMapMetric(m, btn) { mapMetric = m; document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
-        function setMapTimeframe(tf, btn) { mapTimeframe = tf; document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
+        function setMapTimeframe(tf, btn) {
+            mapTimeframe = tf;
+            document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            if (tf === '1m' || tf === '3m') showMapHistoryToast();
+            renderMarketMap();
+        }
         function setMapTop(lim, btn) { mapTopLimit = lim; btn.parentElement.querySelectorAll('.pill-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
         function toggleMapDir(dir) { mapDirection = mapDirection === dir ? 'all' : dir; document.getElementById('btn-map-growth').classList.toggle('active', mapDirection==='growth'); document.getElementById('btn-map-drop').classList.toggle('active', mapDirection==='drop'); renderMarketMap(); }
 
@@ -1545,6 +1987,9 @@
 
         function renderMarketMap() {
             const box = document.getElementById('treemap-container');
+            const layer = document.getElementById('treemap-nodes-layer');
+            if (!layer) return;
+
             let items = mapData.filter(it => {
                 const p = it.change[mapTimeframe] || 0;
                 return mapDirection === 'growth' ? p >= 0 : (mapDirection === 'drop' ? p < 0 : true);
@@ -1555,23 +2000,53 @@
 
             if (mapTopLimit !== 'all') items = items.slice(0, mapTopLimit);
             if (!items.length) {
-                box.innerHTML = `<div class="empty-box" style="height:100%;border:none;"><div class="empty-symbol">∅</div><div class="empty-text">${currentLang === 'ru' ? 'Накопление данных по коллекциям...' : 'Collecting market data...'}</div></div>`;
+                layer.innerHTML = `<div class="empty-box" style="height:100%;border:none;"><div class="empty-symbol">∅</div><div class="empty-text">${currentLang === 'ru' ? 'Накопление данных по коллекциям...' : 'Collecting market data...'}</div></div>`;
                 return;
             }
 
             const rects = [];
-            layoutTreemap(items, 0, 0, box.clientWidth || (window.innerWidth - 32), 520, rects);
-            box.innerHTML = rects.map(({ item, x, y, w, h }) => {
+            layoutTreemap(items, 0, 0, box.clientWidth || (window.innerWidth - 28), 480, rects);
+
+            const activeKeys = new Set();
+            rects.forEach(({ item, x, y, w, h }) => {
+                const key = item.name;
+                activeKeys.add(key);
                 const pct = item.change[mapTimeframe] || 0;
-                const bg = pct >= 0 ? (pct >= 20 ? 'tm-green-hi' : 'tm-green-md') : (pct <= -15 ? 'tm-red-hi' : 'tm-red-md');
-                const imgSz = Math.max(14, Math.min(82, Math.floor(Math.min(w, h) * 0.42)));
+                const bgClass = Math.abs(pct) < 0.05 ? 'tm-neutral' : (pct > 0 ? (pct >= 15 ? 'tm-green-hi' : 'tm-green-md') : (pct <= -10 ? 'tm-red-hi' : 'tm-red-md'));
+                const imgSz = Math.max(16, Math.min(82, Math.floor(Math.min(w, h) * 0.42)));
+                const valLabel = mapMetric === 'cap' ? formatTonShort(item.cap) : (mapMetric === 'vol' ? formatTonShort(item.vol) : `${item.floor} TON`);
+                const pctStr = Math.abs(pct) < 0.05 ? '—' : `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+
+                let node = layer.querySelector(`[data-col="${CSS.escape(key)}"]`);
+                if (!node) {
+                    node = document.createElement('div');
+                    node.setAttribute('data-col', key);
+                    node.onclick = () => openMapDetail(key);
+                    layer.appendChild(node);
+                }
+
+                node.className = `tm-node ${bgClass}`;
+                node.style.left = `${x}px`;
+                node.style.top = `${y}px`;
+                node.style.width = `${w}px`;
+                node.style.height = `${h}px`;
+                node.style.opacity = '1';
+
                 const vis = item.image ? `<img class="tm-img" src="${item.image}" style="width:${imgSz}px;height:${imgSz}px;" onerror="this.style.display='none'">` : `<div style="font-size:${imgSz}px;">🎁</div>`;
                 let txt = vis;
-                if (w >= 160 && h >= 150) txt += `<div class="tm-title" style="font-size:18px;margin-top:6px;">${item.name}</div><div class="tm-sub" style="font-size:14px;">${item.floor} TON</div><div class="tm-pct" style="font-size:14px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
-                else if (w >= 68 && h >= 72) txt += `<div class="tm-sub" style="font-size:10px;margin-top:3px;">${item.floor} TON</div><div class="tm-pct" style="font-size:10px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
-                else if (w >= 42 && h >= 44) txt += `<div class="tm-pct" style="font-size:9px;margin-top:2px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
-                return `<div class="tm-node ${bg}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" onclick="openMapDetail('${item.name.replace(/'/g,"\\'")}')">${txt}</div>`;
-            }).join('');
+                if (w >= 140 && h >= 130) txt += `<div class="tm-title" style="font-size:17px;margin-top:6px;">${item.name}</div><div class="tm-sub" style="font-size:13px;">${valLabel}</div><div class="tm-pct" style="font-size:13px;">${pctStr}</div>`;
+                else if (w >= 68 && h >= 72) txt += `<div class="tm-sub" style="font-size:10px;margin-top:3px;">${valLabel}</div><div class="tm-pct" style="font-size:10px;">${pctStr}</div>`;
+                else if (w >= 42 && h >= 44) txt += `<div class="tm-pct" style="font-size:9px;margin-top:2px;">${pctStr}</div>`;
+                node.innerHTML = txt;
+            });
+
+            Array.from(layer.children).forEach(el => {
+                const k = el.getAttribute('data-col');
+                if (k && !activeKeys.has(k)) {
+                    el.style.opacity = '0';
+                    setTimeout(() => { if (el.parentNode && el.style.opacity === '0') el.remove(); }, 350);
+                }
+            });
         }
 
         function openMapDetail(name) {
@@ -1581,8 +2056,8 @@
             document.getElementById('md-title').innerText = c.name;
             document.getElementById('md-floor').innerText = c.floor + ' TON';
             document.getElementById('md-change').innerText = (c.change[mapTimeframe]||0) + '%';
-            document.getElementById('md-cap').innerText = c.cap + ' TON';
-            document.getElementById('md-vol').innerText = c.vol + ' TON';
+            document.getElementById('md-cap').innerText = formatTonShort(c.cap);
+            document.getElementById('md-vol').innerText = formatTonShort(c.vol);
             openModalById('map-detail-modal');
         }
 
@@ -1669,10 +2144,53 @@
             const activeF = feedFilters.filter(f => f.active);
             const matched = activityData.filter(it => activeF.some(f => (!f.collections?.length || f.collections.includes(it.name)) && (!f.priceTo || it.priceTon <= f.priceTo) && (!f.attrBg || it.desc.toLowerCase().includes(f.attrBg.toLowerCase()))));
             if (!matched.length) { box.innerHTML = `<div class="empty-box"><div class="empty-symbol">🔔</div><div class="empty-text">Фильтры активны. Новые совпадения появятся здесь и придут в личку!</div></div>`; return; }
-            box.innerHTML = `<div class="feed-list">` + matched.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-badge tag-upgrade">● СИГНАЛ</span><span>${it.desc}</span></div></div><div class="item-right"><div class="item-price">${it.rightTop}</div><div class="item-time">${it.time}</div></div></div>`).join('') + `</div>`;
+            box.innerHTML = `<div class="feed-group-card">` + matched.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-inline upgrade">● СИГНАЛ</span><span>${it.desc}</span></div></div><div class="item-right"><div class="item-price">${it.rightTop}</div><div class="item-time">${it.time}</div></div></div>`).join('') + `</div>`;
         }
 
-        let selectedProPlan = 'month', currentRefLink = 'https://t.me';
+        let selectedProPlan = 'month', currentRefLink = `https://t.me{BOT_USERNAME}?start=ref_0`;
+
+        function openPaywallOverlay(isPureTour) {
+            tourIdx = 0;
+            const c = document.getElementById('tour-carousel');
+            if (c) c.scrollTo({ left: 0, behavior: 'instant' });
+            updateTourCaption();
+
+            const cta = document.getElementById('paywall-cta-section');
+            const closeBox = document.getElementById('tour-only-close-box');
+            const trialBtn = document.getElementById('btn-start-trial');
+
+            if (isPureTour) {
+                cta.style.display = 'none';
+                closeBox.style.display = 'block';
+            } else {
+                cta.style.display = 'block';
+                closeBox.style.display = 'none';
+                if (trialBtn) trialBtn.style.display = trialUsed ? 'none' : 'block';
+            }
+            document.getElementById('app-tour-overlay').classList.add('open');
+        }
+
+        function closeAppTour() {
+            document.getElementById('app-tour-overlay').classList.remove('open');
+        }
+
+        function activateFreeTrialDay() {
+            userHasAccess = true;
+            trialUsed = true;
+            localStorage.setItem('gp_trial_started', String(Date.now()));
+            closeAppTour();
+            initUserAccountCard();
+        }
+
+        async function refreshPaymentStatus() {
+            await initUserAccountCard();
+            if (userHasAccess) {
+                closeAppTour();
+                safeAlert('Доступ подтверждён!');
+            } else {
+                safeAlert('Оплата пока не найдена. Оформите подписку выше.');
+            }
+        }
 
         async function initUserAccountCard() {
             const u = tg?.initDataUnsafe?.user;
@@ -1696,12 +2214,14 @@
                         const barEl = document.querySelector('.pro-progress-fill');
 
                         if (!st.has_access) {
+                            trialUsed = true;
                             statusEl.innerText = '● Пробный период (1 день) истёк';
                             statusEl.style.color = 'var(--accent-red)';
                             daysEl.innerText = 'истёк';
                             if (barEl) barEl.style.width = '0%';
-                            openModalById('pro-pay-modal');
+                            openPaywallOverlay(false);
                         } else if (st.is_paid) {
+                            trialUsed = true;
                             statusEl.innerText = `● Подписка Pro активна (${st.days_left} дн.)`;
                             statusEl.style.color = 'var(--accent-green)';
                             daysEl.innerText = `осталось ${st.days_left} дн.`;
@@ -1745,7 +2265,7 @@
                     tg.openInvoice(d.invoice_link, st => {
                         if (st === 'paid') {
                             userHasAccess = true;
-                            closeModalById(null, 'pro-pay-modal');
+                            closeAppTour();
                             safeAlert('Подписка GiftParser Pro активирована!');
                             initUserAccountCard();
                         }
@@ -1785,15 +2305,23 @@
             safeOpenLink(`https://t.me{encodeURIComponent(currentRefLink)}&text=${encodeURIComponent('🎁 Сканер NFT-подарков GiftParser — 1 день бесплатно + бонус по ссылке!')}`);
         }
 
-        function openSupport() {
-            safeOpenLink(`https://t.me{SUPPORT_USERNAME}`);
+        function openBotSupport() {
+            const url = `https://t.me{BOT_USERNAME}?start=support`;
+            if (tg && tg.openTelegramLink) {
+                try {
+                    tg.openTelegramLink(url);
+                    tg.close();
+                    return;
+                } catch (e) {}
+            }
+            window.open(url, '_blank');
         }
 
         function chooseLanguage(l) {
             document.getElementById('chk-lang-ru').style.display = l==='ru'?'inline':'none';
             document.getElementById('chk-lang-en').style.display = l==='en'?'inline':'none';
             document.getElementById('settings-lang-label').innerText = l==='ru'?'Русский':'English';
-            setLang(l, document.querySelector(`.lang-btn:${l==='ru'?'first-child':'last-child'}`));
+            setLang(l, null);
             closeModalById(null, 'lang-modal');
         }
 
@@ -1809,45 +2337,78 @@
             persistArbSettings();
         }
 
-        const TOUR_SLIDES = [
-            { icon: "📈", title: "Живая активность", desc: "Новые выставления и улучшения подарков в реальном времени с редкостью атрибутов." },
-            { icon: "⇄", title: "Арбитраж и снайп", desc: "Находим лоты ниже минимальной цены коллекции с учётом всех комиссий." },
-            { icon: "⊞", title: "Тепловая карта рынка", desc: "Рост и падение всех коллекций за 24ч, 3д, 1н, 1м и 3м." },
-            { icon: "🔔", title: "Персональная лента", desc: "Фильтры по чёрным фонам, редким моделям и бюджету с сигналами в личку." },
-            { icon: "🎁", title: "Реферальная программа", desc: "Делитесь ссылкой с друзьями и получайте 10% с каждой их оплаты." }
-        ];
+        const TOUR_DATA = {
+            ru: [
+                { title: "Живая активность", desc: "Улучшения, крафты и сожжения подарков в реальном времени — с редкостью атрибутов." },
+                { title: "Из чего скрафчено", desc: "Результат крафта и подарки, которые на него сгорели, с моделями, фонами и узорами." },
+                { title: "Связка между маркетами", desc: "Нажмите на подарок — последние продажи такой же модели на MRKT, Portals и Tonnel и где выгоднее продать." },
+                { title: "Ваши фильтры", desc: "Типы сигналов, маркеты, коллекции, бюджет и выгода — подходящее бот пришлёт в личку." },
+                { title: "GiftParser Pro", desc: "Тема, язык, уведомления и подписка — всё в одном месте." }
+            ],
+            en: [
+                { title: "Live activity", desc: "Gift upgrades, crafts and burns in real time — with attribute rarity." },
+                { title: "What it was crafted from", desc: "The craft result and the gifts burned for it, with models, backdrops and symbols." },
+                { title: "Cross-market link", desc: "Tap a gift — recent sales of the same model on MRKT, Portals and Tonnel and where to sell." },
+                { title: "Your filters", desc: "Signal types, markets, collections, budget and profit — matches arrive in your DMs." },
+                { title: "GiftParser Pro", desc: "Theme, language, notifications and subscription — all in one place." }
+            ]
+        };
         let tourIdx = 0;
-        function openAppTour() { tourIdx = 0; renderTourSlide(); document.getElementById('app-tour-overlay').classList.add('open'); }
-        function closeAppTour() { document.getElementById('app-tour-overlay').classList.remove('open'); }
-        function nextTourSlide() { tourIdx = (tourIdx + 1) % TOUR_SLIDES.length; renderTourSlide(); }
-        function renderTourSlide() {
-            const s = TOUR_SLIDES[tourIdx];
-            document.getElementById('tour-step-num').innerText = `0${tourIdx+1} / 05`;
-            document.getElementById('tour-step-title').innerText = s.title;
-            document.getElementById('tour-step-desc').innerText = s.desc;
-            document.getElementById('tour-slide-card').innerHTML = `<div style="font-size:64px;margin-bottom:16px;">${s.icon}</div><div style="font-size:18px;font-weight:800;">${s.title}</div>`;
-            document.getElementById('tour-dots-row').innerHTML = TOUR_SLIDES.map((_, i) => `<div class="tour-dot ${i===tourIdx?'active':''}" onclick="event.stopPropagation();tourIdx=${i};renderTourSlide();"></div>`).join('');
+        let tourLang = 'ru';
+
+        function setTourLang(lang, btn) {
+            tourLang = lang;
+            btn.parentElement.querySelectorAll('.lang-btn').forEach(b => {
+                b.style.background = 'transparent';
+                b.style.color = '#86868d';
+            });
+            btn.style.background = 'var(--accent-orange)';
+            btn.style.color = '#fff';
+            updateTourCaption();
+        }
+
+        function onTourScroll() {
+            const c = document.getElementById('tour-carousel');
+            if (!c || !c.clientWidth) return;
+            const idx = Math.round(c.scrollLeft / c.clientWidth);
+            if (idx !== tourIdx && idx >= 0 && idx < 5) {
+                tourIdx = idx;
+                updateTourCaption();
+            }
+        }
+
+        function goToTourSlide(i) {
+            tourIdx = i;
+            const c = document.getElementById('tour-carousel');
+            if (c) c.scrollTo({ left: i * c.clientWidth, behavior: 'smooth' });
+            updateTourCaption();
+        }
+
+        function updateTourCaption() {
+            const list = TOUR_DATA[tourLang] || TOUR_DATA.ru;
+            const item = list[tourIdx];
+            document.getElementById('tour-step-num').innerText = `0${tourIdx + 1} / 05`;
+            document.getElementById('tour-step-title').innerText = item.title;
+            document.getElementById('tour-step-desc').innerText = item.desc;
+            document.getElementById('tour-dots-row').innerHTML = list.map((_, i) => `<div class="tour-dot ${i === tourIdx ? 'active' : ''}" onclick="goToTourSlide(${i})"></div>`).join('');
         }
 
         function openModalById(id) { document.getElementById(id).classList.add('open'); }
         function closeModalById(e, id) {
-            if (id === 'pro-pay-modal' && !userHasAccess) {
-                safeAlert('Ваш бесплатный день закончился. Оформите подписку, чтобы продолжить.');
-                return;
-            }
             if (!e || e.target.id === id) document.getElementById(id).classList.remove('open');
         }
         function openGift(slug) { safeOpenLink(`https://t.me{slug}`); }
 
         function switchTab(tab, el) {
             if (!userHasAccess && tab !== 'settings') {
-                openModalById('pro-pay-modal');
+                openPaywallOverlay(false);
                 return;
             }
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             if (tab === 'map') renderMarketMap();
             if (tab === 'feed') renderMyFeed();
             if (tab === 'settings') initUserAccountCard();
@@ -1855,8 +2416,6 @@
 
         function setLang(lang, btn) {
             currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
             document.getElementById('txt-title').innerText = lang === 'ru' ? 'Активность' : 'Activity';
             document.getElementById('txt-upgrades').innerText = lang === 'ru' ? 'улучшений' : 'upgrades';
             document.getElementById('txt-crafts').innerText = lang === 'ru' ? 'крафтов' : 'crafts';
@@ -1866,6 +2425,11 @@
             document.getElementById('txt-map-title').innerText = lang === 'ru' ? 'Карта рынка' : 'Market Map';
             document.getElementById('txt-feed-title').innerText = lang === 'ru' ? 'Моя лента' : 'My Feed';
             document.getElementById('txt-settings-title').innerText = lang === 'ru' ? 'Настройки' : 'Settings';
+            document.getElementById('nav-txt-act').innerText = lang === 'ru' ? 'Активность' : 'Activity';
+            document.getElementById('nav-txt-arb').innerText = lang === 'ru' ? 'Арбитраж' : 'Arbitrage';
+            document.getElementById('nav-txt-map').innerText = lang === 'ru' ? 'Карта' : 'Map';
+            document.getElementById('nav-txt-feed').innerText = lang === 'ru' ? 'Лента' : 'Feed';
+            document.getElementById('nav-txt-set').innerText = lang === 'ru' ? 'Настройки' : 'Settings';
             applyActivityFilters();
             applyArbFilters();
             renderMarketMap();
@@ -1894,7 +2458,7 @@
                 if (rArb.ok) {
                     const a = await rArb.json();
                     document.getElementById('arb-count').innerText = a.count_24h || 0;
-                    document.getElementById('arb-best').innerHTML = (a.best_profit > 0 ? a.best_profit.toFixed(2) : '—') + ' <span style="font-size:13px;color:var(--text-muted);">TON</span>';
+                    document.getElementById('arb-best').innerHTML = (a.best_profit > 0 ? `+${a.best_profit.toFixed(1)}` : '—') + ' <span style="font-size:13px;color:var(--text-muted);">TON</span>';
                     if (a.items) { arbitrageData = a.items; applyArbFilters(); }
                 }
                 if (rMap.ok) {
@@ -1905,11 +2469,15 @@
                     const f = await rFeed.json();
                     if (f.markets) {
                         const cnt = f.markets.portals || f.markets.mrkt || 0;
-                        document.getElementById('sales-portals').innerText = `${cnt} лотов`;
-                        document.getElementById('src-tg-stats').innerText = `${cnt} лотов`;
+                        document.getElementById('sales-portals').innerText = `${cnt.toLocaleString('ru-RU')} продаж`;
+                        document.getElementById('src-portals-stats').innerText = `${cnt.toLocaleString('ru-RU')} продаж`;
                     }
                 }
             } catch (e) {}
+        }
+
+        if (!localStorage.getItem('gp_trial_started')) {
+            openPaywallOverlay(false);
         }
 
         initUserAccountCard();
