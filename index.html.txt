@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GiftParser</title>
+    <script src="https://telegram.org"></script>
+    <style>
+        :root {
+            --bg-main: #0e0e10;
+            --bg-card: #18181b;
+            --bg-input: #141417;
+            --bg-card-hover: #222226;
+            --accent-orange: #ff5500;
+            --accent-yellow: #eab308;
+            --accent-teal: #2dd4bf;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+            --accent-blue: #38bdf8;
+            --accent-purple: #a855f7;
+            --text-main: #f4f4f5;
+            --text-muted: #8e8e93;
+            --border-color: #27272a;
+        }
+
+        body.light-theme {
+            --bg-main: #f4f4f6;
+            --bg-card: #ffffff;
+            --bg-input: #ececf0;
+            --bg-card-hover: #e4e4e8;
+            --text-main: #111113;
+            --text-muted: #6e6e73;
+            --border-color: #dcdce0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding-bottom: 85px;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            background: rgba(14, 14, 16, 0.92);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        body.light-theme .header,
+        body.light-theme .bottom-nav,
+        body.light-theme .modal-sheet {
+            background: rgba(255, 255, 255, 0.96);
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--accent-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .lang-switch {
+            display: flex;
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lang-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .lang-btn.active {
+            background: #2c2c31;
+            color: #ffffff;
+        }
+
+        .container { padding: 0 16px; }
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+
+        .page-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0 14px;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .title-icon-badge {
+            width: 34px;
+            height: 34px;
+            background: var(--accent-orange);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .date-badge {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 5px 11px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot-green {
+            width: 7px;
+            height: 7px;
+            background: var(--accent-green);
+            border-radius: 50%;
+        }
+
+        .map-actions { display: flex; gap: 8px; }
+
+        .icon-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .icon-action-btn.orange {
+            background: var(--accent-orange);
+            border-color: var(--accent-orange);
+            color: #fff;
+        }
+
+        /* 3 карточки статистики */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .filter-card { opacity: 0.55; }
+        .filter-card.selected { opacity: 1; }
+        .filter-card.yellow.selected { border-color: var(--accent-yellow); box-shadow: 0 0 12px rgba(234, 179, 8, 0.15); }
+        .filter-card.teal.selected { border-color: var(--accent-teal); box-shadow: 0 0 12px rgba(45, 212, 191, 0.15); }
+        .filter-card.red.selected { border-color: var(--accent-red); box-shadow: 0 0 12px rgba(239, 68, 68, 0.15); }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .stat-label-left { display: flex; align-items: center; gap: 5px; }
+        .stat-dot { width: 7px; height: 7px; border-radius: 2px; display: inline-block; }
+        .stat-value { font-size: 20px; font-weight: 800; margin-bottom: 6px; letter-spacing: -0.3px; }
+        .stat-subtext { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+        .mini-bars { display: flex; align-items: flex-end; gap: 2px; height: 20px; }
+        .bar { flex: 1; border-radius: 2px; opacity: 0.85; }
+
+        /* Статус В ЭФИРЕ */
+        .live-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .live-indicator {
+            color: var(--accent-red);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-red);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.25); opacity: 0.5; }
+            100% { transform: scale(0.95); opacity: 1; }
+        }
+
+        .update-text { color: var(--text-muted); }
+
+        /* Поиск и чипы */
+        .search-box { position: relative; margin-bottom: 12px; }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 11px 14px 11px 36px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .search-input::placeholder { color: var(--text-muted); }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .chips-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            margin-bottom: 14px;
+            scrollbar-width: none;
+        }
+
+        .chips-row::-webkit-scrollbar { display: none; }
+
+        .chip-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .chip-btn.active {
+            background: #ffffff;
+            color: #0e0e10;
+            border-color: #ffffff;
+        }
+
+        /* Карточки списков */
+        .feed-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .feed-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .feed-item:active { background: var(--bg-card-hover); }
+
+        .item-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #27272a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .item-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .item-info { flex: 1; min-width: 0; }
+
+        .item-title {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .item-title span { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+
+        .item-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tag-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .tag-upgrade { color: var(--accent-yellow); }
+        .tag-craft { color: var(--accent-teal); }
+        .tag-burn { color: var(--accent-red); }
+        .tag-arb { color: var(--accent-blue); }
+
+        .item-right { text-align: right; flex-shrink: 0; }
+        .item-price { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+        .profit-green { color: var(--accent-green); font-size: 13px; font-weight: 800; }
+        .rarity-uncommon { color: var(--accent-teal); font-size: 12px; font-weight: 600; }
+        .rarity-epic { color: var(--accent-purple); font-size: 12px; font-weight: 600; }
+        .rarity-burn { color: var(--accent-red); font-size: 12px; font-weight: 600; }
+        .item-time { font-size: 11px; color: var(--text-muted); }
+
+        .empty-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 55px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .empty-symbol { font-size: 28px; opacity: 0.6; }
+        .empty-text { font-size: 13px; line-height: 1.45; max-width: 260px; }
+
+        .segmented-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 3px;
+            margin-bottom: 10px;
+        }
+
+        .seg-btn, .tf-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 7px 4px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .seg-btn.active, .tf-btn.active { background: #27272a; color: #ffffff; }
+
+        .timeframes-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 3px;
+            margin-bottom: 10px;
+        }
+
+        .map-subfilters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .pill-group {
+            display: flex;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 2px;
+        }
+
+        .pill-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .pill-btn.active { background: #27272a; color: #fff; }
+        .pill-btn.growth.active { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .pill-btn.drop.active { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+        .treemap-wrapper {
+            position: relative;
+            width: 100%;
+            height: 520px;
+            background: #141417;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .tm-node {
+            position: absolute;
+            border: 1px solid rgba(0, 0, 0, 0.45);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        .tm-green-hi { background: #16a34a; }
+        .tm-green-md { background: #15803d; }
+        .tm-green-lo { background: #166534; }
+        .tm-red-hi   { background: #dc2626; }
+        .tm-red-md   { background: #b91c1c; }
+        .tm-red-lo   { background: #991b1b; }
+        .tm-img { object-fit: contain; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.35)); pointer-events: none; }
+        .tm-title { font-weight: 800; color: #fff; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 94%; }
+        .tm-sub { font-weight: 700; color: rgba(255,255,255,0.92); line-height: 1.15; white-space: nowrap; }
+        .tm-pct { font-weight: 800; color: #fff; line-height: 1.15; white-space: nowrap; }
+
+        .ticker-strip {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding: 8px 0 12px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            scrollbar-width: none;
+            white-space: nowrap;
+        }
+
+        .ticker-strip::-webkit-scrollbar { display: none; }
+        .ticker-item { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+        .ticker-item span { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+
+        .markets-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .market-bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+        .market-name { width: 58px; flex-shrink: 0; }
+        .progress-track { flex: 1; height: 6px; background: #27272a; border-radius: 6px; overflow: hidden; }
+        .progress-fill-blue { height: 100%; background: #3b82f6; border-radius: 6px; }
+        .market-sales-count { width: 95px; text-align: right; font-size: 12px; color: var(--text-muted); font-weight: 500; flex-shrink: 0; }
+
+        .search-filter-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .search-filter-row .search-box { flex: 1; margin-bottom: 0; }
+
+        .filter-open-btn {
+            width: 42px;
+            height: 42px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .filter-open-btn.has-filters { border-color: var(--accent-orange); color: var(--accent-orange); }
+
+        .feed-empty-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px 16px 24px;
+            text-align: center;
+        }
+
+        .feed-empty-text { color: var(--text-muted); font-size: 13px; line-height: 1.45; max-width: 280px; margin: 14px auto 20px; }
+        .quick-presets-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+        .feed-preset-btn {
+            background: #222226;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 9px 14px;
+            border-radius: 11px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .active-feed-chips { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
+        .active-feed-chips::-webkit-scrollbar { display: none; }
+
+        .feed-tag-chip {
+            background: rgba(255, 85, 0, 0.15);
+            border: 1px solid rgba(255, 85, 0, 0.4);
+            color: var(--accent-orange);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .pro-banner-card {
+            background: linear-gradient(135deg, #1c1c20 0%, #2a1d17 100%);
+            border: 1px solid rgba(255, 85, 0, 0.35);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: #f4f4f5;
+        }
+
+        .pro-logo-sq {
+            width: 46px;
+            height: 46px;
+            background: var(--accent-orange);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .pro-banner-info { flex: 1; }
+        .pro-title { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+        .pro-status { font-size: 12px; color: var(--accent-green); font-weight: 600; margin-bottom: 8px; }
+        .pro-progress-bg { height: 4px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden; }
+        .pro-progress-fill { height: 100%; background: var(--accent-green); width: 25%; }
+
+        .ref-banner-card {
+            background: linear-gradient(135deg, #16221c 0%, #18181b 100%);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            cursor: pointer;
+            color: #f4f4f5;
+        }
+
+        .ref-icon-sq {
+            width: 46px;
+            height: 46px;
+            background: rgba(34, 197, 94, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .settings-group {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 18px;
+            overflow: hidden;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 13px 14px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .settings-item:last-child { border-bottom: none; }
+        .settings-item-left { display: flex; align-items: center; gap: 10px; }
+        .settings-item-right { color: var(--text-muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+
+        .account-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .acc-left { display: flex; align-items: center; gap: 12px; }
+
+        .acc-avatar {
+            width: 42px;
+            height: 42px;
+            background: #27272a;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .acc-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+        .acc-sub { font-size: 12px; color: var(--text-muted); }
+        .acc-days { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.78);
+            z-index: 300;
+            align-items: flex-end;
+        }
+
+        .modal-backdrop.open { display: flex; }
+
+        .modal-sheet {
+            background: #141416;
+            border-top: 1px solid var(--border-color);
+            border-radius: 22px 22px 0 0;
+            width: 100%;
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 12px 16px 28px;
+        }
+
+        .sheet-handle { width: 36px; height: 4px; background: #3f3f46; border-radius: 2px; margin: 0 auto 14px; }
+
+        .modal-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 0;
+            background: #27272a;
+            border: none;
+            color: var(--text-muted);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-size: 14px; font-weight: 600; }
+        .ios-switch { position: relative; display: inline-block; width: 48px; height: 28px; }
+        .ios-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #27272a; transition: .25s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .25s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .section-caption { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.7px; text-transform: uppercase; margin-bottom: 10px; }
+        .empty-filters-hint { text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.45; padding: 14px 10px 20px; }
+
+        .saved-filters-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+        .saved-filter-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
+        .saved-filter-info { flex: 1; cursor: pointer; }
+        .saved-filter-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+        .saved-filter-desc { font-size: 11px; color: var(--text-muted); }
+        .filter-actions { display: flex; align-items: center; gap: 8px; }
+        .del-filter-btn { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border: none; border-radius: 8px; padding: 6px 8px; font-size: 12px; cursor: pointer; }
+
+        .presets-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+        .preset-chip { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 13px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        .primary-orange-btn { width: 100%; background: var(--accent-orange); color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+        .crypto-pay-btn { width: 100%; background: #27272a; color: #fff; border: 1px solid var(--border-color); border-radius: 14px; padding: 13px; font-size: 14px; font-weight: 700; margin-top: 10px; cursor: pointer; }
+        .disabled-btn { width: 100%; background: #222226; color: var(--text-muted); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; font-size: 13px; font-weight: 700; margin-top: 8px; cursor: not-allowed; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-input-full { width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; color: var(--text-main); font-size: 15px; font-weight: 600; outline: none; }
+        .markets-row, .signal-types-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .market-toggle, .signal-chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 9px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .market-toggle.active, .signal-chip.active { background: #ffffff; color: #0e0e10; border-color: #ffffff; }
+
+        .params-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+        .param-cell label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; min-height: 26px; line-height: 1.2; }
+        .param-input { width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 11px 10px; color: var(--text-main); font-size: 15px; font-weight: 700; outline: none; }
+
+        .collections-scroll-box { max-height: 155px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 7px; padding: 6px 2px; margin-top: 10px; }
+        .col-chip { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 7px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .col-chip.active { background: rgba(255, 85, 0, 0.2); border-color: var(--accent-orange); color: var(--accent-orange); }
+
+        .accordion-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; margin: 14px 0 18px; overflow: hidden; }
+        .accordion-header { padding: 13px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .accordion-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border-color); }
+        .accordion-body.open { display: block; }
+
+        .modal-footer-btns { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+        .back-text-btn { flex: 1; background: none; border: none; color: var(--text-main); font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; padding: 10px; }
+        .save-filter-btn { flex: 1.4; background: var(--accent-orange); color: #fff; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+        .detail-stat-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        .pro-features-box, .ref-table-card, .option-list-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; }
+        .pro-feat-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+        .pro-feat-row:last-child { margin-bottom: 0; }
+        .pro-feat-num { color: var(--accent-orange); font-family: monospace; font-size: 13px; font-weight: 800; padding-top: 2px; }
+        .pro-feat-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+        .pro-feat-desc { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+
+        .plans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .plan-card { background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 14px; padding: 14px 12px; cursor: pointer; position: relative; }
+        .plan-card.selected { border-color: var(--accent-orange); background: #1f1916; color: #fff; }
+        .plan-radio { position: absolute; top: 10px; right: 10px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--text-muted); }
+        .plan-card.selected .plan-radio { border-color: var(--accent-orange); background: radial-gradient(circle, var(--accent-orange) 45%, transparent 50%); }
+
+        .ref-link-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 14px 0 10px; }
+        .ref-link-text { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: monospace; }
+        .ref-copy-btn { background: none; border: none; color: var(--accent-orange); font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+        .ref-stats-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 16px; }
+        .ref-mini-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 12px; }
+        .ref-table-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; font-size: 13px; }
+
+        .option-list-card { padding: 0; overflow: hidden; }
+        .option-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--border-color); font-size: 15px; font-weight: 600; cursor: pointer; }
+        .option-row:last-child { border-bottom: none; }
+        .check-orange { color: var(--accent-orange); font-weight: 800; }
+
+        .disclaimer-box { font-size: 11px; color: var(--text-muted); line-height: 1.45; margin-bottom: 10px; }
+        .build-tag { font-family: monospace; font-size: 11px; color: #52525b; margin-bottom: 16px; }
+
+        .tour-overlay { display: none; position: fixed; inset: 0; background: var(--bg-main); z-index: 400; flex-direction: column; justify-content: space-between; padding: 16px 16px 28px; }
+        .tour-overlay.open { display: flex; }
+        .tour-preview-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 22px; padding: 16px; margin: 10px 0; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .tour-dots { display: flex; justify-content: center; gap: 6px; margin: 14px 0 18px; }
+        .tour-dot { width: 8px; height: 8px; border-radius: 4px; background: #3f3f46; cursor: pointer; }
+        .tour-dot.active { width: 22px; background: var(--accent-orange); }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 21, 0.96);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 4px 12px;
+            z-index: 200;
+        }
+
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--accent-orange); }
+        .nav-icon { font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="logo-box">
+            <div class="logo-icon">🎁</div>
+            <span>GiftParser</span>
+        </div>
+        <div class="lang-switch">
+            <button class="lang-btn active" onclick="setLang('ru', this)">RU</button>
+            <button class="lang-btn" onclick="setLang('en', this)">EN</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="tab-activity" class="tab-section active">
+            <div class="page-title-row">
+                <div class="page-title">
+                    <div class="title-icon-badge">📈</div>
+                    <span id="txt-title">Активность</span>
+                </div>
+                <div class="date-badge">
+                    <span class="dot-green"></span>
+                    <span id="current-date">15.11</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card filter-card yellow selected" id="card-upgrade" onclick="toggleActivityFilter('upgrade')">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-yellow);"></span><span id="txt-upgrades">улучшений</span></div></div>
+                    <div class="stat-value" id="stat-upgrades">0</div>
+                    <div class="mini-bars" id="bars-yellow"></div>
+                </div>
+                <div class="stat-card filter-card teal" id="card-craft" onclick="toggleActivityFilter('craft')">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-teal);"></span><span id="txt-crafts">крафтов</span></div></div>
+                    <div class="stat-value" id="stat-crafts">0</div>
+                    <div class="mini-bars" id="bars-teal"></div>
+                </div>
+                <div class="stat-card filter-card red" id="card-burn" onclick="toggleActivityFilter('burn')">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-red);"></span><span id="txt-burned">сожжено</span></div></div>
+                    <div class="stat-value" id="stat-burned">0</div>
+                    <div class="mini-bars" id="bars-red"></div>
+                </div>
+            </div>
+
+            <div class="live-bar">
+                <div class="live-indicator"><span class="pulse-dot"></span><span id="txt-live">В ЭФИРЕ</span></div>
+                <div class="update-text" id="txt-updated">обновлено только что</div>
+            </div>
+
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="search-activity" placeholder="Коллекция, номер, модель, владелец..." oninput="applyActivityFilters()">
+            </div>
+
+            <div class="feed-list" id="feed-list"></div>
+        </div>
+
+        <div id="tab-arbitrage" class="tab-section">
+            <div class="page-title-row">
+                <div class="page-title">
+                    <div class="title-icon-badge">⇄</div>
+                    <span id="txt-arb-title">Арбитраж</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-blue);"></span><span>связок</span></div></div>
+                    <div class="stat-value" id="arb-count">0</div>
+                    <div class="stat-subtext">за 24 ч</div>
+                </div>
+                <div class="stat-card" onclick="scrollToBestArb()">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-green);"></span><span>лучшая</span></div><span>›</span></div>
+                    <div class="stat-value" id="arb-best">— <span style="font-size: 13px; color: var(--text-muted);">TON</span></div>
+                    <div class="stat-subtext">чистыми</div>
+                </div>
+                <div class="stat-card" onclick="openModalById('arb-settings-modal')">
+                    <div class="stat-label"><div class="stat-label-left"><span class="stat-dot" style="background: var(--accent-orange);"></span><span>настройки</span></div><span>›</span></div>
+                    <div class="stat-value" id="arb-filter-label" style="font-size: 18px;">все</div>
+                    <div class="stat-subtext" id="arb-dm-status">🔕 без лички</div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="search-arb" placeholder="Коллекция, номер, модель, фон..." oninput="applyArbFilters()">
+            </div>
+
+            <div class="chips-row">
+                <button class="chip-btn active" onclick="setArbRoute('all', this)">Все</button>
+                <button class="chip-btn" onclick="setArbRoute('portals_mrkt', this)">Portals → MRKT</button>
+                <button class="chip-btn" onclick="setArbRoute('inside_mrkt', this)">Внутри MRKT</button>
+                <button class="chip-btn" onclick="setArbRoute('snipe', this)">Снайп</button>
+            </div>
+
+            <div id="arb-list-container"></div>
+        </div>
+
+        <div id="tab-map" class="tab-section">
+            <div class="page-title-row">
+                <div class="page-title">
+                    <div class="title-icon-badge">⊞</div>
+                    <span id="txt-map-title">Карта рынка</span>
+                </div>
+                <div class="map-actions">
+                    <button class="icon-action-btn" onclick="exportMapStats()">⬇</button>
+                    <button class="icon-action-btn orange" onclick="shareMarketMap()">⬆</button>
+                </div>
+            </div>
+
+            <div class="segmented-bar">
+                <button class="seg-btn active" onclick="setMapMetric('change', this)">Изменение</button>
+                <button class="seg-btn" onclick="setMapMetric('cap', this)">Капитализация</button>
+                <button class="seg-btn" onclick="setMapMetric('vol', this)">Оборот</button>
+            </div>
+
+            <div class="timeframes-bar">
+                <button class="tf-btn active" onclick="setMapTimeframe('24h', this)">24ч</button>
+                <button class="tf-btn" onclick="setMapTimeframe('3d', this)">3д</button>
+                <button class="tf-btn" onclick="setMapTimeframe('1w', this)">1н</button>
+                <button class="tf-btn" onclick="setMapTimeframe('1m', this)">1м</button>
+                <button class="tf-btn" onclick="setMapTimeframe('3m', this)">3м</button>
+            </div>
+
+            <div class="map-subfilters">
+                <div class="pill-group">
+                    <button class="pill-btn active" onclick="setMapTop('all', this)">Все</button>
+                    <button class="pill-btn" onclick="setMapTop(50, this)">Топ 50</button>
+                    <button class="pill-btn" onclick="setMapTop(25, this)">Топ 25</button>
+                </div>
+                <div class="pill-group">
+                    <button class="pill-btn growth" id="btn-map-growth" onclick="toggleMapDir('growth')">📈 Рост</button>
+                    <button class="pill-btn drop" id="btn-map-drop" onclick="toggleMapDir('drop')">📉 Падение</button>
+                </div>
+            </div>
+
+            <div class="treemap-wrapper" id="treemap-container"></div>
+        </div>
+
+        <div id="tab-feed" class="tab-section">
+            <div class="page-title-row">
+                <div class="page-title">
+                    <div class="title-icon-badge">🔔</div>
+                    <span id="txt-feed-title">Моя лента</span>
+                </div>
+            </div>
+
+            <div class="ticker-strip" id="feed-ticker">
+                <div class="ticker-item">Telegram Market <span>Живой поток лотов</span></div>
+            </div>
+
+            <div class="markets-stat-card">
+                <div class="market-bar-row">
+                    <div class="market-name">Portals</div>
+                    <div class="progress-track"><div class="progress-fill-blue" id="bar-portals" style="width: 15%;"></div></div>
+                    <div class="market-sales-count" id="sales-portals">0 лотов</div>
+                </div>
+                <div class="market-bar-row">
+                    <div class="market-name">MRKT</div>
+                    <div class="progress-track"><div class="progress-fill-blue" id="bar-mrkt" style="width: 85%;"></div></div>
+                    <div class="market-sales-count" id="sales-mrkt">0 лотов</div>
+                </div>
+            </div>
+
+            <div class="search-filter-row">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="search-feed" placeholder="Коллекция, номер, модель, фон..." oninput="renderMyFeed()">
+                </div>
+                <button class="filter-open-btn" id="btn-open-feed-filters" onclick="openFeedFiltersModal()">🎛</button>
+            </div>
+
+            <div class="active-feed-chips" id="active-feed-chips"></div>
+            <div id="my-feed-container"></div>
+        </div>
+
+        <div id="tab-settings" class="tab-section">
+            <div class="page-title-row">
+                <div class="page-title">
+                    <div class="title-icon-badge">⚙️</div>
+                    <span id="txt-settings-title">Настройки</span>
+                </div>
+            </div>
+
+            <div class="pro-banner-card" onclick="openModalById('pro-pay-modal')">
+                <div class="pro-logo-sq">🎁</div>
+                <div class="pro-banner-info">
+                    <div class="pro-title">GiftParser Pro</div>
+                    <div class="pro-status" id="pro-expiry-text">● Пробный доступ активен</div>
+                    <div class="pro-progress-bg"><div class="pro-progress-fill"></div></div>
+                </div>
+                <span style="color: var(--text-muted);">›</span>
+            </div>
+
+            <div class="ref-banner-card" onclick="openRefModal()">
+                <div class="ref-icon-sq">🎁</div>
+                <div style="flex:1;">
+                    <div style="font-size:15px; font-weight:800; margin-bottom:3px;">Пригласи друга — 10% с его оплат</div>
+                    <div style="font-size:12px; color:var(--text-muted);">Звёзды — звёздами, крипта — криптой</div>
+                </div>
+                <span style="color: var(--text-muted);">›</span>
+            </div>
+
+            <div class="section-caption">АККАУНТ</div>
+            <div class="account-card">
+                <div class="acc-left">
+                    <div class="acc-avatar" id="acc-avatar-letter">U</div>
+                    <div>
+                        <div class="acc-name" id="acc-display-name">Пользователь</div>
+                        <div class="acc-sub" id="acc-user-meta">@username · id 000000</div>
+                    </div>
+                </div>
+                <div class="acc-days" id="acc-days-left">осталось 1 дн.</div>
+            </div>
+
+            <div class="section-caption">ОБЩЕЕ</div>
+            <div class="settings-group">
+                <div class="settings-item" onclick="openModalById('lang-modal')">
+                    <div class="settings-item-left"><span>文A</span><span>Язык</span></div>
+                    <div class="settings-item-right"><span id="settings-lang-label">Русский</span><span>›</span></div>
+                </div>
+                <div class="settings-item" onclick="openModalById('theme-modal')">
+                    <div class="settings-item-left"><span>🌙</span><span>Тема</span></div>
+                    <div class="settings-item-right"><span id="settings-theme-label">Системная</span><span>›</span></div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-left"><span>🔔</span><span>Сигналы в личку</span></div>
+                    <label class="ios-switch">
+                        <input type="checkbox" id="global-dm-switch" checked onchange="toggleGlobalDm()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-item" onclick="openFeedFiltersModal()">
+                    <div class="settings-item-left"><span>🎛</span><span>Фильтры ленты</span></div>
+                    <div class="settings-item-right"><span id="settings-filters-count">0</span><span>›</span></div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="section-caption">ИСТОЧНИКИ ДАННЫХ</div>
+                <div class="section-caption">ЗА 24 Ч</div>
+            </div>
+            <div class="settings-group">
+                <div class="settings-item">
+                    <div class="settings-item-left"><span class="dot-green"></span><span>Telegram Market</span></div>
+                    <div class="settings-item-right"><span id="src-tg-stats">активен</span></div>
+                </div>
+            </div>
+
+            <div class="section-caption">О СЕРВИСЕ</div>
+            <div class="settings-group">
+                <div class="settings-item" onclick="openAppTour()">
+                    <div class="settings-item-left"><span>▶️</span><span>Обзор приложения</span></div>
+                    <div class="settings-item-right"><span>›</span></div>
+                </div>
+                <div class="settings-item" onclick="tg.openTelegramLink('https://t.me')">
+                    <div class="settings-item-left"><span>❓</span><span>Поддержка</span></div>
+                    <div class="settings-item-right"><span>›</span></div>
+                </div>
+                <div class="settings-item" onclick="openModalById('terms-modal')">
+                    <div class="settings-item-left"><span>📄</span><span>Условия</span></div>
+                    <div class="settings-item-right"><span>›</span></div>
+                </div>
+            </div>
+
+            <div class="disclaimer-box">
+                Сигналы информационные: цены на маркетах меняются за секунды, сервис не гарантирует доступность лота и прибыль. Условия — /terms в боте.
+            </div>
+            <div class="build-tag">giftparser · build 36</div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="arb-settings-modal" onclick="closeModalById(event, 'arb-settings-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Настройки арбитража</span><button class="modal-close" onclick="closeModalById(null, 'arb-settings-modal')">✕</button></div>
+            <div class="switch-row"><span>Присылать связки в личку</span><label class="ios-switch"><input type="checkbox" id="arb-dm-toggle" onchange="toggleArbDm()"><span class="slider"></span></label></div>
+            <div class="section-caption">МОИ ФИЛЬТРЫ</div>
+            <div id="my-arb-filters-container"></div>
+            <div class="section-caption">БЫСТРЫЙ СТАРТ</div>
+            <div class="presets-wrap">
+                <button class="preset-chip" onclick="openNewArbFilterPreset('profit_ton')">Выгода от 1 TON</button>
+                <button class="preset-chip" onclick="openNewArbFilterPreset('profit_pct')">Выгода от 20%</button>
+                <button class="preset-chip" onclick="openNewArbFilterPreset('under_10')">До 10 TON</button>
+                <button class="preset-chip" onclick="openNewArbFilterPreset('liquid')">Ликвидные</button>
+                <button class="preset-chip" onclick="openNewArbFilterPreset('inside_mrkt')">Внутри MRKT</button>
+            </div>
+            <button class="primary-orange-btn" onclick="openNewArbFilterPreset('custom')">+ Новый фильтр</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="arb-new-filter-modal" onclick="closeModalById(event, 'arb-new-filter-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Новый фильтр связок</span><button class="modal-close" onclick="closeModalById(null, 'arb-new-filter-modal')">✕</button></div>
+            <div class="form-group"><div class="section-caption">НАЗВАНИЕ</div><input type="text" id="flt-name" class="form-input-full" placeholder="Выгода от 1 TON"></div>
+            <div class="form-group"><div class="section-caption">ГДЕ ПОКУПАЕМ</div><div class="markets-row"><button type="button" class="market-toggle" id="mkt-portals" onclick="toggleMarket('portals')">Portals</button><button type="button" class="market-toggle" id="mkt-mrkt" onclick="toggleMarket('mrkt')">MRKT</button></div></div>
+            <div class="section-caption">ЦЕНА И ВЫГОДА</div>
+            <div class="params-grid">
+                <div class="param-cell"><label>Выгода от, TON</label><input type="number" step="0.1" id="flt-min-ton" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Выгода от, %</label><input type="number" step="1" id="flt-min-pct" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Цена от, TON</label><input type="number" step="0.1" id="flt-price-from" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Цена до, TON</label><input type="number" step="0.1" id="flt-price-to" class="param-input" placeholder="∞"></div>
+                <div class="param-cell"><label>Номер до</label><input type="number" step="1" id="flt-num-to" class="param-input" placeholder="∞"></div>
+                <div class="param-cell"><label>Редкость модели до, %</label><input type="number" step="0.1" id="flt-rarity-to" class="param-input" value="100"></div>
+            </div>
+            <div class="form-group"><label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Оборот коллекции за сутки от, TON</label><input type="number" step="10" id="flt-volume-from" class="form-input-full" placeholder="0"></div>
+            <div class="modal-footer-btns"><button type="button" class="back-text-btn" onclick="closeModalById(null,'arb-new-filter-modal');openModalById('arb-settings-modal');">Настройки арбитража</button><button type="button" class="save-filter-btn" onclick="saveCustomArbFilter()">Сохранить</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="feed-filters-modal" onclick="closeModalById(event, 'feed-filters-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Мои фильтры</span><button class="modal-close" onclick="closeModalById(null, 'feed-filters-modal')">✕</button></div>
+            <div id="saved-feed-filters-list"></div>
+            <div class="section-caption">БЫСТРЫЙ СТАРТ</div>
+            <div class="presets-wrap">
+                <button class="preset-chip" onclick="openFeedBuilderWithPreset('discount_15')">Выгода от 15%</button>
+                <button class="preset-chip" onclick="openFeedBuilderWithPreset('black_bg')">Чёрный фон</button>
+                <button class="preset-chip" onclick="openFeedBuilderWithPreset('nice_nums')">Красивые номера</button>
+                <button class="preset-chip" onclick="openFeedBuilderWithPreset('under_10')">До 10 TON</button>
+            </div>
+            <button class="primary-orange-btn" onclick="openFeedBuilderWithPreset('custom')">+ Новый фильтр</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="feed-builder-modal" onclick="closeModalById(event, 'feed-builder-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Новый фильтр</span><button class="modal-close" onclick="closeModalById(null, 'feed-builder-modal')">✕</button></div>
+            <div class="form-group"><div class="section-caption">НАЗВАНИЕ</div><input type="text" id="ff-name" class="form-input-full" placeholder="Например: чёрный фон до 10 TON"></div>
+            <div class="form-group"><div class="section-caption">ТИПЫ СИГНАЛОВ</div><div class="signal-types-grid"><button type="button" class="signal-chip active" id="sig-below_sales" onclick="toggleFeedSignal('below_sales')">Ниже продаж</button><button type="button" class="signal-chip active" id="sig-below_autobuy" onclick="toggleFeedSignal('below_autobuy')">Ниже автобая</button><button type="button" class="signal-chip active" id="sig-black_bg" onclick="toggleFeedSignal('black_bg')">Чёрный фон</button><button type="button" class="signal-chip active" id="sig-nice_num" onclick="toggleFeedSignal('nice_num')">Номер</button></div></div>
+            <div class="form-group"><div class="section-caption">МАРКЕТЫ</div><div class="markets-row"><button type="button" class="market-toggle" id="ff-mkt-portals" onclick="toggleFeedMarket('portals')">Portals</button><button type="button" class="market-toggle" id="ff-mkt-mrkt" onclick="toggleFeedMarket('mrkt')">MRKT</button></div></div>
+            <div class="section-caption">ЦЕНА И ВЫГОДА</div>
+            <div class="params-grid">
+                <div class="param-cell"><label>Цена от, TON</label><input type="number" step="0.1" id="ff-price-from" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Цена до, TON</label><input type="number" step="0.1" id="ff-price-to" class="param-input" placeholder="∞"></div>
+                <div class="param-cell"><label>Выгода от, %</label><input type="number" step="1" id="ff-min-pct" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Выгода от, TON</label><input type="number" step="0.1" id="ff-min-ton" class="param-input" value="0"></div>
+                <div class="param-cell"><label>Номер до</label><input type="number" step="1" id="ff-num-to" class="param-input" placeholder="∞"></div>
+                <div class="param-cell"><label>Редкость модели до, %</label><input type="number" step="0.1" id="ff-rarity-to" class="param-input" value="100"></div>
+            </div>
+            <div class="form-group" style="margin-top: 14px;"><div class="section-caption">КОЛЛЕКЦИИ</div><input type="text" id="ff-col-search" class="form-input-full" placeholder="Поиск..." oninput="renderFeedCollectionChips()"><div class="collections-scroll-box" id="ff-collections-box"></div></div>
+            <div class="accordion-box">
+                <div class="accordion-header" onclick="toggleFeedAccordion()"><span>Модели, фоны, узоры, номер, редкость</span><span id="ff-acc-icon" style="font-size: 18px; color: var(--text-muted);">+</span></div>
+                <div class="accordion-body" id="ff-acc-body">
+                    <div style="margin-top: 10px;"><label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px;">Модель</label><input type="text" id="ff-attr-model" class="form-input-full" style="padding:9px 12px; font-size:13px;" placeholder="Red Eye, Fantasy"></div>
+                    <div style="margin-top: 10px;"><label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px;">Цвет фона</label><input type="text" id="ff-attr-bg" class="form-input-full" style="padding:9px 12px; font-size:13px;" placeholder="Onyx Black, Graphite"></div>
+                    <div style="margin-top: 10px;"><label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px;">Узор</label><input type="text" id="ff-attr-symbol" class="form-input-full" style="padding:9px 12px; font-size:13px;" placeholder="Crown, Star"></div>
+                </div>
+            </div>
+            <div class="switch-row"><span>Присылать совпадения в личку</span><label class="ios-switch"><input type="checkbox" id="ff-dm" checked><span class="slider"></span></label></div>
+            <div class="modal-footer-btns"><button type="button" class="back-text-btn" onclick="closeModalById(null,'feed-builder-modal');openFeedFiltersModal();">Мои фильтры</button><button type="button" class="save-filter-btn" onclick="saveNewFeedFilter()">Сохранить</button></div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="map-detail-modal" onclick="closeModalById(event, 'map-detail-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span id="md-title">Коллекция</span><button class="modal-close" onclick="closeModalById(null, 'map-detail-modal')">✕</button></div>
+            <div class="detail-stat-row"><span style="color:var(--text-muted);">Минимальная цена (Floor)</span><strong id="md-floor">0 TON</strong></div>
+            <div class="detail-stat-row"><span style="color:var(--text-muted);">Изменение цены</span><strong id="md-change">+0%</strong></div>
+            <div class="detail-stat-row"><span style="color:var(--text-muted);">Капитализация</span><strong id="md-cap">0 TON</strong></div>
+            <div class="detail-stat-row"><span style="color:var(--text-muted);">Оборот за 24 ч</span><strong id="md-vol">0 TON</strong></div>
+            <button class="primary-orange-btn" style="margin-top:18px;" onclick="searchCollectionInActivity()">Показать события в Активности</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="pro-pay-modal" onclick="closeModalById(event, 'pro-pay-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="font-size:24px; font-weight:900; line-height:1.15;">Лучшие подарки —<br><span style="color:var(--accent-orange);">на шаг раньше.</span></div>
+                <button class="modal-close" style="position:static;" onclick="closeModalById(null, 'pro-pay-modal')">✕</button>
+            </div>
+            <div style="font-size:13px; color:var(--text-muted); margin-top:8px;">Сигналы с Telegram Market, Portals и MRKT — прямо в ваш Telegram.</div>
+            <div class="pro-features-box">
+                <div class="pro-feat-row"><div class="pro-feat-num">01</div><div><div class="pro-feat-title">Арбитраж и снайп лотов</div><div class="pro-feat-desc">Лоты ниже флора коллекции с учётом всех комиссий.</div></div></div>
+                <div class="pro-feat-row"><div class="pro-feat-num">02</div><div><div class="pro-feat-title">Живая лента улучшений</div><div class="pro-feat-desc">Новые выставления с редкостью модели, фона и узора.</div></div></div>
+                <div class="pro-feat-row"><div class="pro-feat-num">03</div><div><div class="pro-feat-title">Уведомления по вашим фильтрам</div><div class="pro-feat-desc">Коллекции, бюджет, чёрные фоны и красивые номера.</div></div></div>
+            </div>
+            <div class="plans-grid">
+                <div class="plan-card" id="plan-week" onclick="selectProPlan('week')"><div class="plan-radio"></div><div style="font-size:15px; font-weight:800; margin-bottom:2px;">Неделя</div><div style="font-size:12px; color:var(--text-muted);">7 дней</div></div>
+                <div class="plan-card selected" id="plan-month" onclick="selectProPlan('month')"><div class="plan-radio"></div><div style="font-size:15px; font-weight:800; margin-bottom:2px;">Месяц</div><div style="font-size:12px; color:var(--text-muted);">30 дней</div></div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                <div style="font-size:32px; font-weight:900;" id="pro-price-stars">400 ⭐️</div>
+                <div style="text-align:right;" id="pro-discount-block"><div style="background:rgba(34,197,94,0.18); color:#4ade80; padding:3px 8px; border-radius:8px; font-size:11px; font-weight:800;">-20% ПЕРВЫЙ МЕСЯЦ</div><div style="font-size:13px; color:var(--text-muted); text-decoration:line-through; margin-top:3px;">500 ⭐️</div></div>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted); margin-bottom:16px;" id="pro-benefit-text">выгода 53% по сравнению с недельной оплатой</div>
+            <button class="primary-orange-btn" id="btn-pay-stars" onclick="payWithTelegramStars()">Оформить за 400 ⭐️</button>
+            <button class="crypto-pay-btn" id="btn-pay-crypto" onclick="tg.showAlert('Подключите токен @CryptoBot в bot.py')">Оплатить криптой · $5.20</button>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="ref-modal" onclick="closeModalById(event, 'ref-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span style="font-size:17px;">10% с каждой оплаты друга</span><button class="modal-close" onclick="closeModalById(null, 'ref-modal')">✕</button></div>
+            <div style="text-align:center; font-size:12px; color:var(--text-muted); line-height:1.4;">Навсегда — пока друг продлевает подписку.<br>Другу по вашей ссылке +1 день пробного.</div>
+            <div class="ref-link-box"><div class="ref-link-text" id="ref-url-display">t.me/bot?start=ref_0</div><button class="ref-copy-btn" onclick="copyRefLink()">Копировать</button></div>
+            <button class="primary-orange-btn" onclick="shareReferralLink()">Отправить другу</button>
+            <div class="ref-stats-2col">
+                <div class="ref-mini-card"><div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Пришли по ссылке</div><div style="font-size:20px; font-weight:800;" id="ref-invited-val">0</div></div>
+                <div class="ref-mini-card"><div style="font-size:11px; color:var(--text-muted); margin-bottom:4px;">Оплатили</div><div style="font-size:20px; font-weight:800; color:var(--accent-green);" id="ref-paid-val">0</div></div>
+            </div>
+            <div class="section-caption">ЗВЁЗДЫ</div>
+            <div class="ref-table-card">
+                <div class="ref-table-row"><span style="color:var(--text-muted);">Можно вывести</span><strong id="ref-stars-avail">0 ⭐️</strong></div>
+                <div class="ref-table-row"><span style="color:var(--text-muted);">Ждут удержания</span><strong id="ref-stars-hold">0 ⭐️</strong></div>
+                <div class="ref-table-row"><span style="color:var(--text-muted);">Уже выплачено</span><strong>0 ⭐️</strong></div>
+                <button class="disabled-btn" onclick="tg.showAlert('Вывод доступен от 50 ⭐️ после 21 дня холда Telegram.')">Вывести звёзды (от 50 ⭐️)</button>
+            </div>
+            <div class="section-caption">КРИПТА</div>
+            <div class="ref-table-card">
+                <div class="ref-table-row"><span style="color:var(--text-muted);">К выплате</span><strong id="ref-usdt-avail">$0.00</strong></div>
+                <div class="ref-table-row"><span style="color:var(--text-muted);">Уже выплачено</span><strong>$0.00</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="lang-modal" onclick="closeModalById(event, 'lang-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Язык</span><button class="modal-close" onclick="closeModalById(null, 'lang-modal')">✕</button></div>
+            <div class="option-list-card">
+                <div class="option-row" onclick="chooseLanguage('ru')"><span>Русский</span><span class="check-orange" id="chk-lang-ru">✓</span></div>
+                <div class="option-row" onclick="chooseLanguage('en')"><span>English</span><span class="check-orange" id="chk-lang-en" style="display:none;">✓</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="theme-modal" onclick="closeModalById(event, 'theme-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Тема</span><button class="modal-close" onclick="closeModalById(null, 'theme-modal')">✕</button></div>
+            <div class="option-list-card">
+                <div class="option-row" onclick="chooseTheme('system', 'Системная')"><span>Системная</span><span class="check-orange" id="chk-theme-system">✓</span></div>
+                <div class="option-row" onclick="chooseTheme('dark', 'Тёмная')"><span>Тёмная</span><span class="check-orange" id="chk-theme-dark" style="display:none;">✓</span></div>
+                <div class="option-row" onclick="chooseTheme('light', 'Светлая')"><span>Светлая</span><span class="check-orange" id="chk-theme-light" style="display:none;">✓</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="terms-modal" onclick="closeModalById(event, 'terms-modal')">
+        <div class="modal-sheet" onclick="event.stopPropagation()">
+            <div class="sheet-handle"></div>
+            <div class="modal-header"><span>Условия</span><button class="modal-close" onclick="closeModalById(null, 'terms-modal')">✕</button></div>
+            <div style="font-size:14px; color:var(--text-muted); line-height:1.55;">Подписка даёт доступ к ленте сигналов и личным уведомлениям. Неделя и первый месяц со скидкой — разовые платежи. Сигналы информационные: цены меняются за секунды, доступность лота и прибыль не гарантируются.</div>
+        </div>
+    </div>
+
+    <div class="tour-overlay" id="app-tour-overlay">
+        <div style="display:flex; justify-content:space-between; align-items:center;"><div class="logo-box"><div class="logo-icon">🎁</div><span>GiftParser</span></div></div>
+        <div class="tour-preview-card" id="tour-slide-card" onclick="nextTourSlide()"></div>
+        <div style="text-align:center;">
+            <div style="color:var(--accent-orange); font-family:monospace; font-size:12px; font-weight:800; margin-bottom:6px;" id="tour-step-num">01 / 05</div>
+            <div style="font-size:22px; font-weight:800; margin-bottom:8px;" id="tour-step-title">Живая активность</div>
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.45; max-width:300px; margin:0 auto;" id="tour-step-desc"></div>
+            <div class="tour-dots" id="tour-dots-row"></div>
+            <button class="primary-orange-btn" onclick="closeAppTour()">Закрыть обзор</button>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('activity', this)"><span class="nav-icon">📈</span><span>Активность</span></div>
+        <div class="nav-item" onclick="switchTab('arbitrage', this)"><span class="nav-icon">⇄</span><span>Арбитраж</span></div>
+        <div class="nav-item" onclick="switchTab('map', this)"><span class="nav-icon">⊞</span><span>Карта</span></div>
+       <div class="nav-item" onclick="switchTab('feed', this)"><span class="nav-icon">🔔</span><span>Лента</span></div>
+        <div class="nav-item" onclick="switchTab('settings', this)"><span class="nav-icon">⚙️</span><span>Настройки</span></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.setHeaderColor('#0e0e10');
+        tg.setBackgroundColor('#0e0e10');
+
+        let currentLang = 'ru';
+        let secondsAgo = 0;
+
+        let activeActivityFilters = new Set(['upgrade']);
+        const now = new Date();
+        document.getElementById('current-date').innerText = String(now.getDate()).padStart(2, '0') + '.' + String(now.getMonth() + 1).padStart(2, '0');
+
+        function renderBars(id, color, heights) {
+            document.getElementById(id).innerHTML = heights.map(h => `<div class="bar" style="height:${h}%;background:${color};"></div>`).join('');
+        }
+        renderBars('bars-yellow', '#eab308', [35, 55, 45, 70, 60, 85, 95, 75, 80, 100]);
+        renderBars('bars-teal', '#2dd4bf', [20, 40, 30, 60, 45, 75, 50, 80, 65, 90]);
+        renderBars('bars-red', '#ef4444', [15, 30, 50, 40, 65, 45, 80, 60, 75, 95]);
+
+        let activityData = [];
+
+        function toggleActivityFilter(type) {
+            if (activeActivityFilters.has(type)) {
+                if (activeActivityFilters.size > 1) activeActivityFilters.delete(type);
+                else activeActivityFilters = new Set(['upgrade', 'craft', 'burn']);
+            } else activeActivityFilters.add(type);
+
+            document.getElementById('card-upgrade').classList.toggle('selected', activeActivityFilters.has('upgrade'));
+            document.getElementById('card-craft').classList.toggle('selected', activeActivityFilters.has('craft'));
+            document.getElementById('card-burn').classList.toggle('selected', activeActivityFilters.has('burn'));
+            applyActivityFilters();
+        }
+
+        function applyActivityFilters() {
+            const q = document.getElementById('search-activity').value.toLowerCase();
+            const filtered = activityData.filter(item => activeActivityFilters.has(item.type) && (!q || item.name.toLowerCase().includes(q) || String(item.num).includes(q) || item.desc.toLowerCase().includes(q)));
+            const list = document.getElementById('feed-list');
+            if (!filtered.length) {
+                list.innerHTML = `<div class="empty-box"><div class="empty-symbol">∅</div><div class="empty-text">Ожидание свежих лотов с маркета Telegram...</div></div>`;
+                return;
+            }
+            list.innerHTML = filtered.map(item => {
+                const tagClass = item.type === 'craft' ? 'tag-craft' : (item.type === 'burn' ? 'tag-burn' : 'tag-upgrade');
+                const avatarHtml = item.image ? `<img src="${item.image}" alt="" loading="lazy" onerror="this.parentElement.innerText='🎁'">` : '🎁';
+                return `<div class="feed-item" onclick="openGift('${item.slug}')"><div class="item-avatar">${avatarHtml}</div><div class="item-info"><div class="item-title">${item.name} <span>#${item.num}</span></div><div class="item-sub"><span class="tag-badge ${tagClass}">● ${item.tag}</span><span>${item.desc}</span></div></div><div class="item-right"><div class="item-price ${item.rightClass||''}">${item.rightTop}</div><div class="item-time">${item.time}</div></div></div>`;
+            }).join('');
+        }
+
+        let currentArbRoute = 'all';
+        let arbitrageData = [];
+        let arbSettings = JSON.parse(localStorage.getItem('gp_arb_settings') || '{"dmEnabled": false, "filters": []}');
+        let selectedMarkets = new Set();
+
+        function syncArbHeaderCard() {
+            const activeCount = arbSettings.filters.filter(f => f.active).length;
+            document.getElementById('arb-filter-label').innerText = activeCount > 0 ? `${activeCount} фильт.` : 'все';
+            document.getElementById('arb-dm-status').innerText = arbSettings.dmEnabled ? '🔔 в личку' : '🔕 без лички';
+            document.getElementById('arb-dm-toggle').checked = arbSettings.dmEnabled;
+        }
+
+        async function persistArbSettings() {
+            localStorage.setItem('gp_arb_settings', JSON.stringify(arbSettings));
+            syncArbHeaderCard();
+            renderSavedArbFilters();
+            applyArbFilters();
+            const uid = tg.initDataUnsafe?.user?.id;
+            if (uid) fetch('/api/arbitrage/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, dm_enabled: arbSettings.dmEnabled, filters: arbSettings.filters }) }).catch(()=>{});
+        }
+
+        function toggleArbDm() { arbSettings.dmEnabled = document.getElementById('arb-dm-toggle').checked; persistArbSettings(); }
+
+        function renderSavedArbFilters() {
+            const box = document.getElementById('my-arb-filters-container');
+            if (!arbSettings.filters.length) { box.innerHTML = `<div class="empty-filters-hint">Фильтров пока нет — во вкладке видны все связки.</div>`; return; }
+            box.innerHTML = `<div class="saved-filters-list">` + arbSettings.filters.map((f, i) => `<div class="saved-filter-card" style="opacity:${f.active?1:0.5}"><div class="saved-filter-info" onclick="arbSettings.filters[${i}].active=!arbSettings.filters[${i}].active;persistArbSettings();"><div class="saved-filter-title">${f.active?'🟠':'⚪️'} ${f.name}</div></div><button class="del-filter-btn" onclick="arbSettings.filters.splice(${i},1);persistArbSettings();">✕</button></div>`).join('') + `</div>`;
+        }
+
+        function toggleMarket(m) {
+            if (selectedMarkets.has(m)) selectedMarkets.delete(m); else selectedMarkets.add(m);
+            document.getElementById('mkt-portals').classList.toggle('active', selectedMarkets.has('portals'));
+            document.getElementById('mkt-mrkt').classList.toggle('active', selectedMarkets.has('mrkt'));
+        }
+
+        function openNewArbFilterPreset(preset) {
+            closeModalById(null, 'arb-settings-modal');
+            selectedMarkets = new Set();
+            document.getElementById('flt-name').value = preset === 'profit_ton' ? 'Выгода от 1 TON' : (preset === 'profit_pct' ? 'Выгода от 20%' : (preset === 'under_10' ? 'До 10 TON' : ''));
+            document.getElementById('flt-min-ton').value = preset === 'profit_ton' ? 1 : 0;
+            document.getElementById('flt-min-pct').value = preset === 'profit_pct' ? 20 : 0;
+            document.getElementById('flt-price-to').value = preset === 'under_10' ? 10 : '';
+            openModalById('arb-new-filter-modal');
+        }
+
+        function saveCustomArbFilter() {
+            arbSettings.filters.push({
+                name: document.getElementById('flt-name').value.trim() || `Фильтр #${arbSettings.filters.length + 1}`,
+                active: true,
+                markets: Array.from(selectedMarkets),
+                minTon: parseFloat(document.getElementById('flt-min-ton').value) || 0,
+                minPct: parseFloat(document.getElementById('flt-min-pct').value) || 0,
+                priceFrom: parseFloat(document.getElementById('flt-price-from').value) || 0,
+                priceTo: parseFloat(document.getElementById('flt-price-to').value) || null
+            });
+            closeModalById(null, 'arb-new-filter-modal');
+            persistArbSettings();
+            openModalById('arb-settings-modal');
+        }
+
+        function setArbRoute(route, btn) {
+            currentArbRoute = route;
+            document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyArbFilters();
+        }
+
+        function applyArbFilters() {
+            const q = document.getElementById('search-arb').value.toLowerCase();
+            const filtered = arbitrageData.filter(it => (currentArbRoute === 'all' || it.route === currentArbRoute) && (!q || it.name.toLowerCase().includes(q) || String(it.num).includes(q)));
+            const box = document.getElementById('arb-list-container');
+            if (!filtered.length) { box.innerHTML = `<div class="empty-box"><div class="empty-symbol">∅</div><div class="empty-text">Пока пусто — новые связки появятся здесь сами</div></div>`; return; }
+            box.innerHTML = `<div class="feed-list">` + filtered.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-badge tag-arb">● ${it.routeLabel}</span><span>${it.buyPrice} → ${it.sellPrice} TON</span></div></div><div class="item-right"><div class="profit-green">+${it.profit.toFixed(2)} TON</div><div class="item-time">+${it.roi}% чистыми</div></div></div>`).join('') + `</div>`;
+        }
+
+        function scrollToBestArb() { if (arbitrageData.length) openGift(arbitrageData[0].slug); }
+
+        let mapMetric = 'change', mapTimeframe = '24h', mapTopLimit = 'all', mapDirection = 'all', mapData = [], selectedMapCol = null;
+
+        function setMapMetric(m, btn) { mapMetric = m; document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
+        function setMapTimeframe(tf, btn) { mapTimeframe = tf; document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
+        function setMapTop(lim, btn) { mapTopLimit = lim; btn.parentElement.querySelectorAll('.pill-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderMarketMap(); }
+        function toggleMapDir(dir) { mapDirection = mapDirection === dir ? 'all' : dir; document.getElementById('btn-map-growth').classList.toggle('active', mapDirection==='growth'); document.getElementById('btn-map-drop').classList.toggle('active', mapDirection==='drop'); renderMarketMap(); }
+
+        function layoutTreemap(items, x, y, w, h, res) {
+            if (!items.length || w <= 0 || h <= 0) return;
+            if (items.length === 1) { res.push({ item: items[0], x, y, w, h }); return; }
+            const total = items.reduce((s, i) => s + i.weight, 0);
+            let acc = 0, idx = 1;
+            for (let i = 0; i < items.length - 1; i++) { acc += items[i].weight; idx = i + 1; if (acc >= total * 0.45) break; }
+            const gA = items.slice(0, idx), gB = items.slice(idx);
+            const ratio = total > 0 ? gA.reduce((s, i) => s + i.weight, 0) / total : 0.5;
+            if (w >= h) { layoutTreemap(gA, x, y, w * ratio, h, res); layoutTreemap(gB, x + w * ratio, y, w * (1 - ratio), h, res); }
+            else { layoutTreemap(gA, x, y, w, h * ratio, res); layoutTreemap(gB, x, y + h * ratio, w, h * (1 - ratio), res); }
+        }
+
+        function renderMarketMap() {
+            const box = document.getElementById('treemap-container');
+            let items = mapData.filter(it => {
+                const p = it.change[mapTimeframe] || 0;
+                return mapDirection === 'growth' ? p >= 0 : (mapDirection === 'drop' ? p < 0 : true);
+            }).map(it => ({
+                ...it,
+                weight: mapMetric === 'cap' ? Math.max(1, it.cap) : (mapMetric === 'vol' ? Math.max(1, it.vol) : Math.max(1.5, Math.abs(it.change[mapTimeframe] || 0)))
+            })).sort((a, b) => b.weight - a.weight);
+
+            if (mapTopLimit !== 'all') items = items.slice(0, mapTopLimit);
+            if (!items.length) { box.innerHTML = `<div class="empty-box" style="height:100%;border:none;"><div class="empty-symbol">∅</div><div class="empty-text">Накопление данных по коллекциям...</div></div>`; return; }
+
+            const rects = [];
+            layoutTreemap(items, 0, 0, box.clientWidth || (window.innerWidth - 32), 520, rects);
+            box.innerHTML = rects.map(({ item, x, y, w, h }) => {
+                const pct = item.change[mapTimeframe] || 0;
+                const bg = pct >= 0 ? (pct >= 20 ? 'tm-green-hi' : 'tm-green-md') : (pct <= -15 ? 'tm-red-hi' : 'tm-red-md');
+                const imgSz = Math.max(14, Math.min(82, Math.floor(Math.min(w, h) * 0.42)));
+                const vis = item.image ? `<img class="tm-img" src="${item.image}" style="width:${imgSz}px;height:${imgSz}px;">` : `<div style="font-size:${imgSz}px;">🎁</div>`;
+                let txt = vis;
+                if (w >= 160 && h >= 150) txt += `<div class="tm-title" style="font-size:18px;margin-top:6px;">${item.name}</div><div class="tm-sub" style="font-size:14px;">${item.floor} TON</div><div class="tm-pct" style="font-size:14px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
+                else if (w >= 68 && h >= 72) txt += `<div class="tm-sub" style="font-size:10px;margin-top:3px;">${item.floor} TON</div><div class="tm-pct" style="font-size:10px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
+                else if (w >= 42 && h >= 44) txt += `<div class="tm-pct" style="font-size:9px;margin-top:2px;">${pct>=0?'+':''}${pct.toFixed(1)}%</div>`;
+                return `<div class="tm-node ${bg}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" onclick="openMapDetail('${item.name.replace(/'/g,"\\'")}')">${txt}</div>`;
+            }).join('');
+        }
+
+        function openMapDetail(name) {
+            const c = mapData.find(x => x.name === name);
+            if (!c) return;
+            selectedMapCol = c;
+            document.getElementById('md-title').innerText = c.name;
+            document.getElementById('md-floor').innerText = c.floor + ' TON';
+            document.getElementById('md-change').innerText = (c.change[mapTimeframe]||0) + '%';
+            document.getElementById('md-cap').innerText = c.cap + ' TON';
+            document.getElementById('md-vol').innerText = c.vol + ' TON';
+            openModalById('map-detail-modal');
+        }
+
+        function searchCollectionInActivity() {
+            if (!selectedMapCol) return;
+            closeModalById(null, 'map-detail-modal');
+            document.getElementById('search-activity').value = selectedMapCol.name;
+            switchTab('activity', document.querySelector('.nav-item'));
+            applyActivityFilters();
+        }
+
+        function exportMapStats() { tg.showAlert('Сводка карты рынка скопирована!'); }
+        function shareMarketMap() { tg.openTelegramLink(`https://t.me{encodeURIComponent('📊 Карта рынка NFT-подарков Telegram')}`); }
+
+        let feedFilters = JSON.parse(localStorage.getItem('gp_feed_filters') || '[]');
+        let builderSignals = new Set(['below_sales', 'below_autobuy', 'black_bg', 'nice_num']);
+        let builderMarkets = new Set(), builderCollections = new Set();
+
+        async function persistFeedFilters() {
+            localStorage.setItem('gp_feed_filters', JSON.stringify(feedFilters));
+            document.getElementById('btn-open-feed-filters').classList.toggle('has-filters', feedFilters.length > 0);
+            document.getElementById('settings-filters-count').innerText = feedFilters.length;
+            renderFeedChips();
+            renderSavedFeedFiltersList();
+            renderMyFeed();
+            const uid = tg.initDataUnsafe?.user?.id;
+            if (uid) fetch('/api/feed/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: uid, filters: feedFilters }) }).catch(()=>{});
+        }
+
+        function openFeedFiltersModal() { renderSavedFeedFiltersList(); openModalById('feed-filters-modal'); }
+        function toggleFeedSignal(k) { if (builderSignals.has(k)) builderSignals.delete(k); else builderSignals.add(k); document.getElementById('sig-'+k).classList.toggle('active', builderSignals.has(k)); }
+        function toggleFeedMarket(m) { if (builderMarkets.has(m)) builderMarkets.delete(m); else builderMarkets.add(m); document.getElementById('ff-mkt-'+m).classList.toggle('active', builderMarkets.has(m)); }
+        function toggleFeedAccordion() { const b = document.getElementById('ff-acc-body'); const open = b.classList.toggle('open'); document.getElementById('ff-acc-icon').innerText = open ? '−' : '+'; }
+
+        function renderFeedCollectionChips() {
+            const q = (document.getElementById('ff-col-search').value || '').toLowerCase();
+            const cols = Array.from(new Set(mapData.map(m => m.name))).sort().filter(c => !q || c.toLowerCase().includes(q));
+            document.getElementById('ff-collections-box').innerHTML = cols.map(c => `<button type="button" class="col-chip ${builderCollections.has(c)?'active':''}" onclick="if(builderCollections.has('${c}'))builderCollections.delete('${c}');else builderCollections.add('${c}');renderFeedCollectionChips();">${c}</button>`).join('');
+        }
+
+        function openFeedBuilderWithPreset(p) {
+            closeModalById(null, 'feed-filters-modal');
+            builderCollections = new Set();
+            document.getElementById('ff-name').value = p === 'discount_15' ? 'Выгода от 15%' : (p === 'black_bg' ? 'Чёрный фон' : (p === 'nice_nums' ? 'Красивые номера' : (p === 'under_10' ? 'До 10 TON' : '')));
+            document.getElementById('ff-min-pct').value = p === 'discount_15' ? 15 : 0;
+            document.getElementById('ff-price-to').value = p === 'under_10' ? 10 : '';
+            document.getElementById('ff-attr-bg').value = p === 'black_bg' ? 'Black' : '';
+            renderFeedCollectionChips();
+            openModalById('feed-builder-modal');
+        }
+
+        function saveNewFeedFilter() {
+            feedFilters.push({
+                name: document.getElementById('ff-name').value.trim() || `Фильтр #${feedFilters.length + 1}`,
+                active: true,
+                collections: Array.from(builderCollections),
+                priceFrom: parseFloat(document.getElementById('ff-price-from').value) || 0,
+                priceTo: parseFloat(document.getElementById('ff-price-to').value) || null,
+                attrModel: document.getElementById('ff-attr-model').value.trim(),
+                attrBg: document.getElementById('ff-attr-bg').value.trim(),
+                dm: document.getElementById('ff-dm').checked
+            });
+            closeModalById(null, 'feed-builder-modal');
+            persistFeedFilters();
+            openFeedFiltersModal();
+        }
+
+        function renderSavedFeedFiltersList() {
+            const box = document.getElementById('saved-feed-filters-list');
+            if (!feedFilters.length) { box.innerHTML = `<div class="empty-filters-hint">Лента показывает только сигналы по вашим фильтрам.</div>`; return; }
+            box.innerHTML = `<div class="saved-filters-list">` + feedFilters.map((f, i) => `<div class="saved-filter-card"><div class="saved-filter-info" onclick="feedFilters[${i}].active=!feedFilters[${i}].active;persistFeedFilters();"><div class="saved-filter-title">${f.active?'🟠':'⚪️'} ${f.name}</div></div><button class="del-filter-btn" onclick="feedFilters.splice(${i},1);persistFeedFilters();">✕</button></div>`).join('') + `</div>`;
+        }
+
+        function renderFeedChips() {
+            document.getElementById('active-feed-chips').innerHTML = feedFilters.map((f, i) => `<div class="feed-tag-chip" onclick="feedFilters[${i}].active=!feedFilters[${i}].active;persistFeedFilters();"><span>${f.name}</span><span onclick="event.stopPropagation();feedFilters.splice(${i},1);persistFeedFilters();">✕</span></div>`).join('');
+        }
+
+        function renderMyFeed() {
+            const box = document.getElementById('my-feed-container');
+            if (!feedFilters.length) {
+                box.innerHTML = `<div class="feed-empty-card"><div class="empty-symbol">⚡</div><div class="feed-empty-text">Лента показывает только сигналы по вашим фильтрам. Создайте первый — например, из готовых ниже.</div><div class="quick-presets-grid"><button class="feed-preset-btn" onclick="openFeedBuilderWithPreset('discount_15')">Выгода от 15%</button><button class="feed-preset-btn" onclick="openFeedBuilderWithPreset('black_bg')">Чёрный фон</button><button class="feed-preset-btn" onclick="openFeedBuilderWithPreset('nice_nums')">Красивые номера</button><button class="feed-preset-btn" onclick="openFeedBuilderWithPreset('under_10')">До 10 TON</button></div></div>`;
+                return;
+            }
+            const activeF = feedFilters.filter(f => f.active);
+            const matched = activityData.filter(it => activeF.some(f => (!f.collections?.length || f.collections.includes(it.name)) && (!f.priceTo || it.priceTon <= f.priceTo) && (!f.attrBg || it.desc.toLowerCase().includes(f.attrBg.toLowerCase()))));
+            if (!matched.length) { box.innerHTML = `<div class="empty-box"><div class="empty-symbol">🔔</div><div class="empty-text">Фильтры активны. Новые совпадения появятся здесь и придут в личку!</div></div>`; return; }
+            box.innerHTML = `<div class="feed-list">` + matched.map(it => `<div class="feed-item" onclick="openGift('${it.slug}')"><div class="item-avatar">${it.image?`<img src="${it.image}">`:'🎁'}</div><div class="item-info"><div class="item-title">${it.name} <span>#${it.num}</span></div><div class="item-sub"><span class="tag-badge tag-upgrade">● СИГНАЛ</span><span>${it.desc}</span></div></div><div class="item-right"><div class="item-price">${it.rightTop}</div><div class="item-time">${it.time}</div></div></div>`).join('') + `</div>`;
+        }
+
+        let selectedProPlan = 'month', currentRefLink = 'https://t.me';
+
+        function initUserAccountCard() {
+            const u = tg.initDataUnsafe?.user;
+            if (u) {
+                const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Пользователь';
+                document.getElementById('acc-avatar-letter').innerText = name.charAt(0).toUpperCase();
+                document.getElementById('acc-display-name').innerText = name;
+                document.getElementById('acc-user-meta').innerText = `${u.username ? '@'+u.username : 'id'} · id ${u.id}`;
+            }
+            document.getElementById('settings-filters-count').innerText = feedFilters.length;
+        }
+
+        function selectProPlan(plan) {
+            selectedProPlan = plan;
+            document.getElementById('plan-week').classList.toggle('selected', plan === 'week');
+            document.getElementById('plan-month').classList.toggle('selected', plan === 'month');
+            document.getElementById('pro-price-stars').innerText = plan === 'week' ? '150 ⭐️' : '400 ⭐️';
+            document.getElementById('pro-discount-block').style.display = plan === 'week' ? 'none' : 'block';
+            document.getElementById('btn-pay-stars').innerText = plan === 'week' ? 'Оформить за 150 ⭐️' : 'Оформить за 400 ⭐️';
+            document.getElementById('btn-pay-crypto').innerText = plan === 'week' ? 'Оплатить криптой · $1.95' : 'Оплатить криптой · $5.20';
+        }
+
+        async function payWithTelegramStars() {
+            const res = await fetch('/api/create-invoice', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ plan: selectedProPlan }) });
+            const d = await res.json();
+            if (d.invoice_link) tg.openInvoice(d.invoice_link, st => { if (st === 'paid') { closeModalById(null, 'pro-pay-modal'); tg.showAlert('Подписка активирована!'); } });
+        }
+
+        async function openRefModal() {
+            const uid = tg.initDataUnsafe?.user?.id || 0;
+            openModalById('ref-modal');
+            if (uid) {
+                const res = await fetch(`/api/referral/${uid}`).catch(()=>null);
+                if (res && res.ok) {
+                    const d = await res.json();
+                    currentRefLink = `https://t.me{d.bot_username}?start=ref_${uid}`;
+                    document.getElementById('ref-url-display').innerText = currentRefLink.replace('https://', '');
+                    document.getElementById('ref-invited-val').innerText = d.invited_count;
+                    document.getElementById('ref-paid-val').innerText = d.paid_count;
+                }
+            }
+        }
+
+        function copyRefLink() { navigator.clipboard?.writeText(currentRefLink); tg.showAlert('Ссылка скопирована!'); }
+        function shareReferralLink() { tg.openTelegramLink(`https://t.me{encodeURIComponent(currentRefLink)}&text=${encodeURIComponent('🎁 Сканер NFT-подарков GiftParser')}`); }
+        function chooseLanguage(l) { document.getElementById('chk-lang-ru').style.display = l==='ru'?'inline':'none'; document.getElementById('chk-lang-en').style.display = l==='en'?'inline':'none'; document.getElementById('settings-lang-label').innerText = l==='ru'?'Русский':'English'; setLang(l, document.querySelector(`.lang-btn:${l==='ru'?'first-child':'last-child'}`)); closeModalById(null, 'lang-modal'); }
+        function chooseTheme(m, lbl) { ['system','dark','light'].forEach(k => document.getElementById('chk-theme-'+k).style.display = k===m?'inline':'none'); document.getElementById('settings-theme-label').innerText = lbl; document.body.classList.toggle('light-theme', m==='light' || (m==='system' && tg.colorScheme==='light')); closeModalById(null, 'theme-modal'); }
+        function toggleGlobalDm() { arbSettings.dmEnabled = document.getElementById('global-dm-switch').checked; persistArbSettings(); }
+
+        const TOUR_SLIDES = [
+            { icon: "📈", title: "Живая активность", desc: "Новые выставления и улучшения подарков в реальном времени с редкостью атрибутов." },
+            { icon: "⇄", title: "Арбитраж и снайп", desc: "Находим лоты ниже минимальной цены коллекции с учётом всех комиссий." },
+            { icon: "⊞", title: "Тепловая карта рынка", desc: "Рост и падение всех коллекций за 24ч, 3д, 1н, 1м и 3м." },
+            { icon: "🔔", title: "Персональная лента", desc: "Фильтры по чёрным фонам, редким моделям и бюджету с сигналами в личку." },
+            { icon: "🎁", title: "Реферальная программа", desc: "Делитесь ссылкой с друзьями и получайте 10% с каждой их оплаты." }
+        ];
+        let tourIdx = 0;
+        function openAppTour() { tourIdx = 0; renderTourSlide(); document.getElementById('app-tour-overlay').classList.add('open'); }
+        function closeAppTour() { document.getElementById('app-tour-overlay').classList.remove('open'); }
+        function nextTourSlide() { tourIdx = (tourIdx + 1) % TOUR_SLIDES.length; renderTourSlide(); }
+        function renderTourSlide() {
+            const s = TOUR_SLIDES[tourIdx];
+            document.getElementById('tour-step-num').innerText = `0${tourIdx+1} / 05`;
+            document.getElementById('tour-step-title').innerText = s.title;
+            document.getElementById('tour-step-desc').innerText = s.desc;
+            document.getElementById('tour-slide-card').innerHTML = `<div style="font-size:64px;margin-bottom:16px;">${s.icon}</div><div style="font-size:18px;font-weight:800;">${s.title}</div>`;
+            document.getElementById('tour-dots-row').innerHTML = TOUR_SLIDES.map((_, i) => `<div class="tour-dot ${i===tourIdx?'active':''}" onclick="event.stopPropagation();tourIdx=${i};renderTourSlide();"></div>`).join('');
+        }
+
+        function openModalById(id) { document.getElementById(id).classList.add('open'); }
+        function closeModalById(e, id) { if (!e || e.target.id === id) document.getElementById(id).classList.remove('open'); }
+        function openGift(slug) { tg.openTelegramLink(`https://t.me{slug}`); }
+
+        function switchTab(tab, el) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            if (tab === 'map') renderMarketMap();
+            if (tab === 'feed') renderMyFeed();
+            if (tab === 'settings') initUserAccountCard();
+        }
+
+        function setLang(lang, btn) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            document.getElementById('txt-title').innerText = lang === 'ru' ? 'Активность' : 'Activity';
+            document.getElementById('txt-arb-title').innerText = lang === 'ru' ? 'Арбитраж' : 'Arbitrage';
+            document.getElementById('txt-map-title').innerText = lang === 'ru' ? 'Карта рынка' : 'Market Map';
+            document.getElementById('txt-feed-title').innerText = lang === 'ru' ? 'Моя лента' : 'My Feed';
+            document.getElementById('txt-settings-title').innerText = lang === 'ru' ? 'Настройки' : 'Settings';
+        }
+
+        setInterval(() => {
+            secondsAgo++;
+            document.getElementById('txt-updated').innerText = currentLang === 'ru' ? `обновлено ${secondsAgo} с назад` : `updated ${secondsAgo}s ago`;
+        }, 1000);
+
+        async function fetchAllData() {
+            try {
+                const [rAct, rArb, rMap, rFeed] = await Promise.all([
+                    fetch('/api/activity'), fetch('/api/arbitrage'), fetch('/api/map'), fetch('/api/feed/listings')
+                ]);
+                if (rAct.ok) {
+                    const d = await rAct.json();
+                    secondsAgo = 0;
+                    if (d.stats) {
+                        document.getElementById('stat-upgrades').innerText = d.stats.upgrades.toLocaleString('ru-RU');
+                        document.getElementById('stat-crafts').innerText = d.stats.crafts.toLocaleString('ru-RU');
+                        document.getElementById('stat-burned').innerText = d.stats.burned.toLocaleString('ru-RU');
+                    }
+                    if (d.items) { activityData = d.items; applyActivityFilters(); renderMyFeed(); }
+                }
+                if (rArb.ok) {
+                    const a = await rArb.json();
+                    document.getElementById('arb-count').innerText = a.count_24h || 0;
+                    document.getElementById('arb-best').innerHTML = (a.best_profit > 0 ? a.best_profit.toFixed(2) : '—') + ' <span style="font-size:13px;color:var(--text-muted);">TON</span>';
+                    if (a.items) { arbitrageData = a.items; applyArbFilters(); }
+                }
+                if (rMap.ok) {
+                    const m = await rMap.json();
+                    if (m.items) { mapData = m.items; renderMarketMap(); }
+                }
+                if (rFeed.ok) {
+                    const f = await rFeed.json();
+                    if (f.markets) {
+                        document.getElementById('sales-mrkt').innerText = `${f.markets.mrkt || 0} лотов`;
+                        document.getElementById('src-tg-stats').innerText = `${f.markets.mrkt || 0} лотов`;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        syncArbHeaderCard();
+        renderFeedChips();
+        renderMyFeed();
+        applyActivityFilters();
+        applyArbFilters();
+        fetchAllData();
+        setInterval(fetchAllData, 10000);
+    </script>
+</body>
+</html>
